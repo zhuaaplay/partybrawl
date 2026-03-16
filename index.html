@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Party Brawl</title>
+
+  <!-- ══ PWA Meta Tags ══ -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Party Brawl">
+  <meta name="theme-color" content="#000000">
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* ─── Reset & Base ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+    /* ─── Screens ─── */
+    .screen { position: fixed; inset: 0; width: 100%; height: 100%; display: flex; }
+    .hidden-screen { display: none !important; }
+
+    /* ══════════════════════════════════════════
+       PORTRAIT SCREEN
+    ══════════════════════════════════════════ */
+    #portrait-screen {
+      background: #000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 28px;
+    }
+    #portrait-install-text {
+      color: #fff;
+      font-size: 15px;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.2s;
+    }
+    #portrait-install-text:hover { opacity: 0.75; }
+    #portrait-download-btn {
+      display: none;
+      background: #fff;
+      color: #000;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 14px 36px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: transform 0.15s, opacity 0.15s;
+      animation: fadeSlideUp 0.3s ease forwards;
+    }
+    #portrait-download-btn:hover { transform: scale(1.04); opacity: 0.9; }
+
+    /* ── PWA Install Banner (portrait) ── */
+    #pwa-banner {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1f2937;
+      color: #fff;
+      border-radius: 16px;
+      padding: 14px 20px;
+      width: min(340px, 88vw);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 9998;
+      animation: fadeSlideUp 0.35s ease forwards;
+      align-items: center;
+      gap: 12px;
+    }
+    #pwa-banner.show { display: flex; }
+    #pwa-banner-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: #374151; flex-shrink: 0;
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
+    }
+    #pwa-banner-icon img { width: 100%; height: 100%; object-fit: cover; }
+    #pwa-banner-text { flex: 1; }
+    #pwa-banner-text strong { display: block; font-size: 14px; font-weight: 600; }
+    #pwa-banner-text span { font-size: 12px; color: rgba(255,255,255,0.55); }
+    #pwa-banner-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .pwa-btn {
+      padding: 7px 14px; border-radius: 8px; font-size: 13px;
+      font-weight: 600; border: none; cursor: pointer; transition: opacity 0.2s;
+    }
+    .pwa-btn:hover { opacity: 0.85; }
+    #pwa-btn-cancel { background: #374151; color: #9ca3af; }
+    #pwa-btn-install { background: #fff; color: #1f2937; }
+
+    /* ══════════════════════════════════════════
+       BLACK INTRO SCREEN
+    ══════════════════════════════════════════ */
+    #black-screen {
+      background: #000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ══════════════════════════════════════════
+       LOADING SCREEN
+    ══════════════════════════════════════════ */
+    #loading-screen {
+      background: url('./assets/loadingscreenbg.png') center/cover no-repeat,
+                  linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      align-items: stretch;
+      justify-content: stretch;
+      flex-direction: column;
+      position: relative;
+    }
+    #loading-version {
+      position: absolute; top: 16px; left: 20px;
+      color: rgba(255,255,255,0.6); font-size: 11px;
+      font-weight: 400; line-height: 1.5; letter-spacing: 0.01em;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+    #loading-copyright {
+      position: absolute; bottom: 18px; right: 20px;
+      color: rgba(255,255,255,0.55); font-size: 11px;
+      font-weight: 400; letter-spacing: 0.01em;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+    #loading-bottom-left {
+      position: absolute; bottom: 14px; left: 18px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .spinner-ring {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 2.5px solid rgba(255,255,255,0.25);
+      border-top-color: rgba(255,255,255,0.85);
+      animation: spin 0.85s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-step-text {
+      color: rgba(255,255,255,0.75); font-size: 12px;
+      font-weight: 400; letter-spacing: 0.02em;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+      transition: opacity 0.3s;
+    }
+
+    /* ══════════════════════════════════════════
+       TITLE SCREEN
+    ══════════════════════════════════════════ */
+    #title-screen {
+      background: radial-gradient(ellipse at 60% 45%, #ececec 0%, #e0e0e0 60%, #d4d4d4 100%);
+      align-items: center; justify-content: center;
+      flex-direction: column; position: relative;
+    }
+    #title-version {
+      position: absolute; top: 18px; left: 22px;
+      color: #6b7280; font-size: 11px; line-height: 1.6; font-weight: 400;
+    }
+    #title-copyright {
+      position: absolute; bottom: 18px; right: 22px;
+      color: #9ca3af; font-size: 11px;
+    }
+    #title-refresh-icon {
+      position: absolute; bottom: 14px; left: 20px;
+      width: 22px; height: 22px; opacity: 0.45;
+    }
+    #title-logo-row {
+      display: flex; align-items: center; gap: 0px;
+      filter: drop-shadow(0 8px 24px rgba(0,0,0,0.12));
+      animation: titleReveal 0.6s cubic-bezier(0.34,1.2,0.64,1) forwards;
+    }
+    #mascot-wrap {
+      width: 90px; height: 90px; flex-shrink: 0;
+      margin-right: -4px; position: relative; z-index: 2;
+    }
+    #title-word {
+      font-size: clamp(52px, 8vw, 88px);
+      font-weight: 800; color: #1f2937;
+      letter-spacing: -0.03em; line-height: 1;
+      text-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    /* ══════════════════════════════════════════
+       GAME AREA SCREEN
+    ══════════════════════════════════════════ */
+    #game-screen {
+      background: #000; align-items: center; justify-content: center;
+    }
+    #game-placeholder-text {
+      color: rgba(255,255,255,0.35); font-size: clamp(18px, 3vw, 28px);
+      font-weight: 300; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+
+    /* ══════════════════════════════════════════
+       MODAL: Create Account
+    ══════════════════════════════════════════ */
+    #modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); backdrop-filter: blur(6px);
+      display: none; align-items: center; justify-content: center; z-index: 9999;
+    }
+    #modal-overlay.show { display: flex; }
+    #modal-box {
+      background: #fff; border-radius: 20px; padding: 28px 28px 24px;
+      width: min(380px, 90vw);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.25), 0 4px 12px rgba(0,0,0,0.1);
+      transform: translateY(60px); opacity: 0;
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease;
+    }
+    #modal-box.modal-in  { transform: translateY(0); opacity: 1; }
+    #modal-box.modal-out { transform: translateY(60px); opacity: 0; }
+    #modal-title {
+      font-size: 17px; font-weight: 700; color: #111827;
+      margin-bottom: 6px; letter-spacing: -0.01em;
+    }
+    #modal-desc {
+      font-size: 12.5px; color: #6b7280; line-height: 1.55; margin-bottom: 22px;
+    }
+    #profile-pic-wrap { display: flex; justify-content: center; margin-bottom: 22px; }
+    #profile-pic-btn {
+      width: 88px; height: 88px; border-radius: 50%;
+      background: #f3f4f6; border: 2.5px dashed #d1d5db;
+      cursor: pointer; overflow: hidden; position: relative;
+      transition: border-color 0.2s, transform 0.2s; flex-shrink: 0;
+    }
+    #profile-pic-btn:hover { border-color: #6b7280; transform: scale(1.04); }
+    #profile-pic-btn img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+    #profile-pic-overlay {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.28);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    #profile-pic-btn:hover #profile-pic-overlay { opacity: 1; }
+    #profile-pic-overlay svg { width: 22px; height: 22px; }
+    #file-input { display: none; }
+    .modal-input {
+      width: 100%; padding: 11px 18px; border-radius: 50px;
+      border: 1.5px solid #e5e7eb; font-size: 14px; color: #111827;
+      background: #f9fafb; outline: none;
+      transition: border-color 0.2s, background 0.2s; margin-bottom: 12px;
+    }
+    .modal-input:focus { border-color: #374151; background: #fff; }
+    .modal-input::placeholder { color: #9ca3af; }
+    .modal-input.invalid { border-color: #ef4444; }
+    #modal-create-btn {
+      width: 100%; padding: 13px; border-radius: 50px;
+      background: #1f2937; color: #fff; font-size: 14.5px;
+      font-weight: 600; border: none; cursor: pointer;
+      letter-spacing: 0.02em; margin-top: 4px;
+      transition: background 0.2s, transform 0.15s, opacity 0.2s;
+    }
+    #modal-create-btn:hover:not(:disabled) { background: #374151; transform: scale(1.01); }
+    #modal-create-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+    /* ══════════════════════════════════════════
+       CROP OVERLAY
+    ══════════════════════════════════════════ */
+    #crop-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      z-index: 10001; display: none; flex-direction: column;
+      align-items: center; justify-content: center; gap: 18px;
+    }
+    #crop-overlay.show { display: flex; }
+    #crop-canvas { border-radius: 12px; max-width: 90vw; max-height: 70vh; cursor: crosshair; }
+    #crop-hint { color: rgba(255,255,255,0.6); font-size: 13px; text-align: center; padding: 0 20px; }
+    #crop-confirm-btn {
+      background: #fff; color: #000; border: none; padding: 11px 36px;
+      border-radius: 50px; font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: transform 0.15s;
+    }
+    #crop-confirm-btn:hover { transform: scale(1.03); }
+
+    /* ══════════════════════════════════════════
+       ANIMATIONS
+    ══════════════════════════════════════════ */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(16px) translateX(-50%); }
+      to   { opacity: 1; transform: translateY(0)    translateX(-50%); }
+    }
+    @keyframes titleReveal {
+      from { opacity: 0; transform: scale(0.94); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════
+       1. PORTRAIT SCREEN
+  ══════════════════════════════════ -->
+  <div id="portrait-screen" class="screen hidden-screen">
+    <span id="portrait-install-text" onclick="showDownload()">Instal</span>
+    <button id="portrait-download-btn" onclick="fakeDownload()">Download APK</button>
+  </div>
+
+  <!-- PWA Install Banner -->
+  <div id="pwa-banner">
+    <div id="pwa-banner-icon">
+      <img src="./assets/icons/icon-192.png" alt="icon"
+           onerror="this.style.display='none'"/>
+    </div>
+    <div id="pwa-banner-text">
+      <strong>Party Brawl</strong>
+      <span>Instal aplikasi ini</span>
+    </div>
+    <div id="pwa-banner-actions">
+      <button class="pwa-btn" id="pwa-btn-cancel" onclick="dismissPWA()">Batal</button>
+      <button class="pwa-btn" id="pwa-btn-install" onclick="installPWA()">Instal</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       2. BLACK INTRO SCREEN
+  ══════════════════════════════════ -->
+  <div id="black-screen" class="screen hidden-screen"></div>
+
+  <!-- ══════════════════════════════════
+       3. LOADING SCREEN
+  ══════════════════════════════════ -->
+  <div id="loading-screen" class="screen hidden-screen">
+    <div id="loading-version">
+      Version 1.15.2.1-207009<br>
+      Global Server - Asia
+    </div>
+    <div id="loading-copyright">© 2026 Source Technology</div>
+    <div id="loading-bottom-left">
+      <div class="spinner-ring"></div>
+      <span id="loading-step-text">Connect to server</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       4. TITLE SCREEN
+  ══════════════════════════════════ -->
+  <div id="title-screen" class="screen hidden-screen">
+    <div id="title-version">
+      Version 1.15.2.1-207009<br>
+      Global Server - Asia
+    </div>
+
+    <div id="title-logo-row">
+      <!-- Inline SVG Corgi Mascot -->
+      <div id="mascot-wrap">
+        <svg viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+          <ellipse cx="50" cy="105" rx="24" ry="5" fill="rgba(0,0,0,0.10)"/>
+          <ellipse cx="50" cy="75" rx="26" ry="28" fill="#E8651A"/>
+          <ellipse cx="50" cy="80" rx="16" ry="20" fill="#FFF8F0"/>
+          <rect x="28" y="92" width="12" height="14" rx="6" fill="#E8651A"/>
+          <rect x="60" y="92" width="12" height="14" rx="6" fill="#E8651A"/>
+          <ellipse cx="24" cy="75" rx="8" ry="10" fill="#E8651A"/>
+          <ellipse cx="76" cy="75" rx="8" ry="10" fill="#E8651A"/>
+          <ellipse cx="24" cy="77" rx="5" ry="6.5" fill="#F0D0B0" opacity="0.4"/>
+          <ellipse cx="76" cy="77" rx="5" ry="6.5" fill="#F0D0B0" opacity="0.4"/>
+          <rect x="38" y="46" width="24" height="14" rx="8" fill="#E8651A"/>
+          <rect x="34" y="53" width="32" height="9" rx="4.5" fill="#FBBF24"/>
+          <circle cx="50" cy="57" r="4.5" fill="#F59E0B"/>
+          <circle cx="50" cy="57" r="2.5" fill="#D97706"/>
+          <ellipse cx="50" cy="36" rx="24" ry="22" fill="#E8651A"/>
+          <ellipse cx="50" cy="42" rx="16" ry="14" fill="#FFF8F0"/>
+          <ellipse cx="28" cy="20" rx="9" ry="13" fill="#E8651A" transform="rotate(-10,28,20)"/>
+          <ellipse cx="28" cy="22" rx="5" ry="8"  fill="#C4440A" transform="rotate(-10,28,22)" opacity="0.5"/>
+          <ellipse cx="72" cy="20" rx="9" ry="13" fill="#E8651A" transform="rotate(10,72,20)"/>
+          <ellipse cx="72" cy="22" rx="5" ry="8"  fill="#C4440A" transform="rotate(10,72,22)" opacity="0.5"/>
+          <circle cx="38" cy="33" r="5.5" fill="#1f2937"/>
+          <circle cx="39.5" cy="31.5" r="2" fill="#fff"/>
+          <circle cx="62" cy="33" r="5.5" fill="#1f2937"/>
+          <circle cx="63.5" cy="31.5" r="2" fill="#fff"/>
+          <ellipse cx="50" cy="41" rx="5" ry="3.5" fill="#1f2937"/>
+          <ellipse cx="48.5" cy="39.5" rx="1.5" ry="1" fill="#fff" opacity="0.6"/>
+          <path d="M44 45 Q50 50 56 45" stroke="#1f2937" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="40" cy="62" rx="6" ry="10" fill="#fff" opacity="0.12"/>
+        </svg>
+      </div>
+      <span id="title-word">Party Brawl</span>
+    </div>
+
+    <svg id="title-refresh-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" stroke="#374151" stroke-width="2"/>
+      <path d="M8 12a4 4 0 014-4 4 4 0 013.46 2" stroke="#374151" stroke-width="2" stroke-linecap="round"/>
+      <path d="M15.5 10l.5-2.5 2.5.5" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div id="title-copyright">© 2026 Source Technology</div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       5. GAME AREA SCREEN
+  ══════════════════════════════════ -->
+  <div id="game-screen" class="screen hidden-screen">
+    <p id="game-placeholder-text">Game Area – Landscape Mode Only</p>
+  </div>
+
+  <!-- ══════════════════════════════════
+       MODAL: Create Account
+  ══════════════════════════════════ -->
+  <div id="modal-overlay">
+    <div id="modal-box">
+      <p id="modal-title">Create Your Account</p>
+      <p id="modal-desc">Create an account to save all your achievements in the game. Your data will not be misused.</p>
+
+      <div id="profile-pic-wrap">
+        <button id="profile-pic-btn" onclick="document.getElementById('file-input').click()" type="button" aria-label="Choose profile picture">
+          <img id="profile-preview" src="./assets/user.png" alt="Profile"
+               onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 80 80\'><circle cx=\'40\' cy=\'40\' r=\'40\' fill=\'%23e5e7eb\'/><circle cx=\'40\' cy=\'30\' r=\'14\' fill=\'%239ca3af\'/><ellipse cx=\'40\' cy=\'72\' rx=\'24\' ry=\'18\' fill=\'%239ca3af\'/></svg>'"/>
+          <div id="profile-pic-overlay">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+        </button>
+        <input type="file" id="file-input" accept="image/*" onchange="handleFileSelect(event)"/>
+      </div>
+
+      <input type="text" id="first-name-input" class="modal-input"
+             placeholder="First name" oninput="validateForm()" autocomplete="given-name"/>
+      <input type="text" id="last-name-input"  class="modal-input"
+             placeholder="Last name (optional)" oninput="validateForm()" autocomplete="family-name"/>
+      <button id="modal-create-btn" disabled onclick="createAccount()">Create</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       CROP OVERLAY
+  ══════════════════════════════════ -->
+  <div id="crop-overlay">
+    <p id="crop-hint">Drag kotak untuk memindahkan · Drag sudut untuk resize · Area akan di-crop 1:1</p>
+    <canvas id="crop-canvas"></canvas>
+    <button id="crop-confirm-btn" onclick="confirmCrop()">Terapkan Foto</button>
+  </div>
+  <canvas id="offscreen-canvas" style="display:none"></canvas>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════ */
+const S = {
+  isPortrait: false,
+  currentScreen: null,
+  loadingPaused: false,
+  loadingTimer: null,
+  stepIndex: 0,
+  stepElapsed: 0,
+  totalElapsed: 0,
+  profileBase64: null,
+  deferredPrompt: null,   // PWA install event
+  // crop state
+  cropImg: null,
+  cropX: 0, cropY: 0, cropSize: 0,
+  dragging: false, dragType: null,
+  dragStartX: 0, dragStartY: 0,
+  dragStartCrop: null,
+};
+
+/* ── Loading steps: total 50 000ms ──
+   Connect(6s) + LoadResource(7s) + Login(6s*) + UpdateResource(8s)
+   + LoadResource2(7s) + LoadAssets(8s) + Completed(8s) = 50s
+   *Login: 6s if account exists, else paused until modal done
+*/
+const STEPS = [
+  { text: 'Connect to server',  duration: 6000 },
+  { text: 'Loading resource',   duration: 7000 },
+  { text: 'Login',              duration: 6000 },
+  { text: 'Update resource',    duration: 8000 },
+  { text: 'Load resource',      duration: 7000 },
+  { text: 'Load assets',        duration: 8000 },
+  { text: 'Completed',          duration: 8000 },
+];
+const TICK = 100;
+
+/* ══════════════════════════════════════════════════════
+   PWA — capture beforeinstallprompt
+══════════════════════════════════════════════════════ */
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  S.deferredPrompt = e;
+  // Show custom banner if in portrait, else keep for later
+  if (S.isPortrait) showPWABanner();
+});
+
+window.addEventListener('appinstalled', () => {
+  S.deferredPrompt = null;
+  hidePWABanner();
+});
+
+function showPWABanner() {
+  if (!S.deferredPrompt) return;
+  document.getElementById('pwa-banner').classList.add('show');
+}
+function hidePWABanner() {
+  document.getElementById('pwa-banner').classList.remove('show');
+}
+function dismissPWA() { hidePWABanner(); }
+async function installPWA() {
+  if (!S.deferredPrompt) return;
+  S.deferredPrompt.prompt();
+  const { outcome } = await S.deferredPrompt.userChoice;
+  if (outcome === 'accepted') S.deferredPrompt = null;
+  hidePWABanner();
+}
+
+/* ══════════════════════════════════════════════════════
+   SCREEN HELPERS
+══════════════════════════════════════════════════════ */
+function showScreen(id) {
+  ['portrait-screen','black-screen','loading-screen','title-screen','game-screen']
+    .forEach(s => document.getElementById(s).classList.add('hidden-screen'));
+  if (id) document.getElementById(id).classList.remove('hidden-screen');
+  S.currentScreen = id;
+}
+
+/* ══════════════════════════════════════════════════════
+   ORIENTATION
+══════════════════════════════════════════════════════ */
+function checkOrientation() {
+  return window.innerWidth < window.innerHeight;
+}
+
+window.addEventListener('resize', () => {
+  const nowPortrait = checkOrientation();
+  if (nowPortrait === S.isPortrait) return;
+  S.isPortrait = nowPortrait;
+  if (nowPortrait) {
+    clearTimeout(S.loadingTimer);
+    showScreen('portrait-screen');
+    if (S.deferredPrompt) showPWABanner();
+  } else {
+    hidePWABanner();
+    if (S.currentScreen === 'portrait-screen') startLandscapeFlow();
+  }
+});
+
+/* ══════════════════════════════════════════════════════
+   PORTRAIT ACTIONS
+══════════════════════════════════════════════════════ */
+function showDownload() {
+  // Try PWA install first; fallback to APK download button
+  if (S.deferredPrompt) {
+    installPWA();
+  } else {
+    const btn = document.getElementById('portrait-download-btn');
+    btn.style.display = 'block';
+  }
+}
+function fakeDownload() {
+  const blob = new Blob(['PartyBrawl APK placeholder'], { type: 'application/vnd.android.package-archive' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'partybrawl.apk'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ══════════════════════════════════════════════════════
+   LANDSCAPE FLOW
+══════════════════════════════════════════════════════ */
+function startLandscapeFlow() {
+  S.stepIndex = 0; S.stepElapsed = 0;
+  S.totalElapsed = 0; S.loadingPaused = false;
+  showScreen('black-screen');
+  setTimeout(() => {
+    if (!S.isPortrait) {
+      showScreen('loading-screen');
+      updateStepText();
+      scheduleNextTick();
+    }
+  }, 2000);
+}
+
+/* ══════════════════════════════════════════════════════
+   LOADING ENGINE
+══════════════════════════════════════════════════════ */
+function updateStepText() {
+  const el = document.getElementById('loading-step-text');
+  el.style.opacity = '0';
+  setTimeout(() => {
+    el.textContent = STEPS[S.stepIndex]?.text ?? 'Completed';
+    el.style.opacity = '1';
+  }, 150);
+}
+
+function scheduleNextTick() {
+  if (S.loadingPaused) return;
+  S.loadingTimer = setTimeout(tick, TICK);
+}
+
+function tick() {
+  if (S.isPortrait || S.loadingPaused) return;
+  S.stepElapsed  += TICK;
+  S.totalElapsed += TICK;
+
+  const step = STEPS[S.stepIndex];
+  if (!step) { finishLoading(); return; }
+
+  // Login step: first tick check
+  if (step.text === 'Login' && S.stepElapsed === TICK) {
+    const account = localStorage.getItem('partyBrawlAccount');
+    if (!account) {
+      S.loadingPaused = true;
+      showModal();
+      return;
+    }
+  }
+
+  if (S.stepElapsed >= step.duration) {
+    S.stepIndex++; S.stepElapsed = 0;
+    if (S.stepIndex < STEPS.length) { updateStepText(); scheduleNextTick(); }
+    else finishLoading();
+  } else {
+    scheduleNextTick();
+  }
+}
+
+function resumeLoading() {
+  S.loadingPaused = false;
+  scheduleNextTick();
+}
+
+function finishLoading() {
+  showScreen('title-screen');
+  setTimeout(() => { if (!S.isPortrait) showScreen('game-screen'); }, 2000);
+}
+
+/* ══════════════════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════════════════ */
+function showModal() {
+  const overlay = document.getElementById('modal-overlay');
+  const box = document.getElementById('modal-box');
+  overlay.classList.add('show');
+  requestAnimationFrame(() => requestAnimationFrame(() => box.classList.add('modal-in')));
+}
+function hideModal(cb) {
+  const overlay = document.getElementById('modal-overlay');
+  const box = document.getElementById('modal-box');
+  box.classList.remove('modal-in');
+  box.classList.add('modal-out');
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    box.classList.remove('modal-out');
+    if (cb) cb();
+  }, 420);
+}
+function countWords(str) {
+  return str.trim().split(/\s+/).filter(w => w.length > 0).length;
+}
+function validateForm() {
+  const fn = document.getElementById('first-name-input').value.trim();
+  const ln = document.getElementById('last-name-input').value.trim();
+  const btn = document.getElementById('modal-create-btn');
+  const fnInput = document.getElementById('first-name-input');
+  const fnWords = fn.length > 0 ? countWords(fn) : 0;
+  const lnWords = ln.length > 0 ? countWords(ln) : 0;
+  const fnValid = fn.length > 0 && fnWords >= 1 && fnWords <= 10;
+  const lnValid = ln.length === 0 || lnWords <= 5;
+  fnInput.classList.toggle('invalid', fn.length > 0 && !fnValid);
+  btn.disabled = !(fnValid && lnValid);
+}
+function createAccount() {
+  const firstName = document.getElementById('first-name-input').value.trim();
+  const lastName  = document.getElementById('last-name-input').value.trim();
+  const profileBase64 = S.profileBase64 || null;
+  localStorage.setItem('partyBrawlAccount', JSON.stringify({ firstName, lastName, profileBase64 }));
+  hideModal(() => { S.stepElapsed = 0; resumeLoading(); });
+}
+
+/* ══════════════════════════════════════════════════════
+   PROFILE IMAGE / CROP
+══════════════════════════════════════════════════════ */
+function handleFileSelect(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => openCropper(ev.target.result);
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+function openCropper(src) {
+  const overlay = document.getElementById('crop-overlay');
+  const canvas  = document.getElementById('crop-canvas');
+  const ctx     = canvas.getContext('2d');
+  S.cropImg = new Image();
+  S.cropImg.onload = () => {
+    const maxW = Math.min(window.innerWidth * 0.85, 600);
+    const maxH = Math.min(window.innerHeight * 0.65, 500);
+    const scale = Math.min(maxW / S.cropImg.width, maxH / S.cropImg.height, 1);
+    canvas.width  = Math.round(S.cropImg.width  * scale);
+    canvas.height = Math.round(S.cropImg.height * scale);
+    const minDim = Math.min(canvas.width, canvas.height);
+    S.cropSize = Math.round(minDim * 0.7);
+    S.cropX = Math.round((canvas.width  - S.cropSize) / 2);
+    S.cropY = Math.round((canvas.height - S.cropSize) / 2);
+    drawCrop(ctx, canvas);
+    overlay.classList.add('show');
+    canvas.addEventListener('mousedown',  onCropMouseDown);
+    canvas.addEventListener('mousemove',  onCropMouseMove);
+    canvas.addEventListener('mouseup',    onCropMouseUp);
+    canvas.addEventListener('touchstart', onCropTouchStart, { passive: false });
+    canvas.addEventListener('touchmove',  onCropTouchMove,  { passive: false });
+    canvas.addEventListener('touchend',   onCropTouchEnd);
+  };
+  S.cropImg.src = src;
+}
+function drawCrop(ctx, canvas) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(S.cropImg, 0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Reveal crop region
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(S.cropX, S.cropY, S.cropSize, S.cropSize);
+  ctx.clip();
+  ctx.drawImage(S.cropImg, 0, 0, canvas.width, canvas.height);
+  ctx.restore();
+  // Border
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(S.cropX, S.cropY, S.cropSize, S.cropSize);
+  // Corner handles
+  const h = 10;
+  ctx.fillStyle = '#fff';
+  [[S.cropX, S.cropY],[S.cropX+S.cropSize,S.cropY],
+   [S.cropX, S.cropY+S.cropSize],[S.cropX+S.cropSize,S.cropY+S.cropSize]]
+    .forEach(([x,y]) => ctx.fillRect(x-h/2, y-h/2, h, h));
+}
+function getHitZone(mx, my) {
+  const t=14, cx=S.cropX, cy=S.cropY, cs=S.cropSize;
+  if (Math.abs(mx-cx)<t && Math.abs(my-cy)<t) return 'tl';
+  if (Math.abs(mx-(cx+cs))<t && Math.abs(my-cy)<t) return 'tr';
+  if (Math.abs(mx-cx)<t && Math.abs(my-(cy+cs))<t) return 'bl';
+  if (Math.abs(mx-(cx+cs))<t && Math.abs(my-(cy+cs))<t) return 'br';
+  if (mx>cx && mx<cx+cs && my>cy && my<cy+cs) return 'move';
+  return null;
+}
+function onCropMouseDown(e) {
+  const r = e.target.getBoundingClientRect();
+  S.dragType = getHitZone(e.clientX-r.left, e.clientY-r.top);
+  if (!S.dragType) return;
+  S.dragging=true; S.dragStartX=e.clientX-r.left; S.dragStartY=e.clientY-r.top;
+  S.dragStartCrop={x:S.cropX,y:S.cropY,size:S.cropSize};
+}
+function onCropMouseMove(e) {
+  if (!S.dragging) return;
+  const r=e.target.getBoundingClientRect();
+  const canvas=document.getElementById('crop-canvas');
+  moveCrop(e.clientX-r.left, e.clientY-r.top, canvas);
+  drawCrop(canvas.getContext('2d'), canvas);
+}
+function onCropMouseUp() { S.dragging=false; S.dragType=null; }
+function onCropTouchStart(e) {
+  e.preventDefault();
+  const t=e.touches[0], r=e.target.getBoundingClientRect();
+  S.dragType=getHitZone(t.clientX-r.left,t.clientY-r.top);
+  if (!S.dragType) return;
+  S.dragging=true; S.dragStartX=t.clientX-r.left; S.dragStartY=t.clientY-r.top;
+  S.dragStartCrop={x:S.cropX,y:S.cropY,size:S.cropSize};
+}
+function onCropTouchMove(e) {
+  e.preventDefault();
+  if (!S.dragging) return;
+  const t=e.touches[0], r=e.target.getBoundingClientRect();
+  const canvas=document.getElementById('crop-canvas');
+  moveCrop(t.clientX-r.left,t.clientY-r.top,canvas);
+  drawCrop(canvas.getContext('2d'),canvas);
+}
+function onCropTouchEnd() { S.dragging=false; S.dragType=null; }
+function moveCrop(mx, my, canvas) {
+  const dx=mx-S.dragStartX, dy=my-S.dragStartY;
+  const {x:ox,y:oy,size:os}=S.dragStartCrop, minSize=40;
+  if (S.dragType==='move') {
+    S.cropX=Math.max(0,Math.min(canvas.width-os, ox+dx));
+    S.cropY=Math.max(0,Math.min(canvas.height-os,oy+dy));
+  } else {
+    const delta=(Math.abs(dx)>Math.abs(dy))?dx:dy;
+    let ns=os,nx=ox,ny=oy;
+    if (S.dragType==='br') { ns=Math.max(minSize,os+delta); }
+    if (S.dragType==='tr') { ns=Math.max(minSize,os+delta); ny=oy-delta; }
+    if (S.dragType==='bl') { ns=Math.max(minSize,os-delta); nx=ox+delta; }
+    if (S.dragType==='tl') { ns=Math.max(minSize,os-delta); nx=ox+delta; ny=oy+delta; }
+    nx=Math.max(0,nx); ny=Math.max(0,ny);
+    if (nx+ns>canvas.width)  ns=canvas.width-nx;
+    if (ny+ns>canvas.height) ns=canvas.height-ny;
+    S.cropX=nx; S.cropY=ny; S.cropSize=ns;
+  }
+}
+function confirmCrop() {
+  const srcCanvas=document.getElementById('crop-canvas');
+  const offCanvas=document.getElementById('offscreen-canvas');
+  const SIZE=256;
+  offCanvas.width=SIZE; offCanvas.height=SIZE;
+  const ctx=offCanvas.getContext('2d');
+  const sw=(S.cropSize/srcCanvas.width)*S.cropImg.width;
+  const sh=(S.cropSize/srcCanvas.height)*S.cropImg.height;
+  const sx=(S.cropX/srcCanvas.width)*S.cropImg.width;
+  const sy=(S.cropY/srcCanvas.height)*S.cropImg.height;
+  ctx.clearRect(0,0,SIZE,SIZE);
+  ctx.save();
+  ctx.beginPath(); ctx.arc(SIZE/2,SIZE/2,SIZE/2,0,Math.PI*2); ctx.clip();
+  ctx.drawImage(S.cropImg,sx,sy,sw,sh,0,0,SIZE,SIZE);
+  ctx.restore();
+  S.profileBase64=offCanvas.toDataURL('image/jpeg',0.92);
+  document.getElementById('profile-preview').src=S.profileBase64;
+  // cleanup listeners
+  const c=srcCanvas;
+  c.removeEventListener('mousedown',onCropMouseDown);
+  c.removeEventListener('mousemove',onCropMouseMove);
+  c.removeEventListener('mouseup',onCropMouseUp);
+  c.removeEventListener('touchstart',onCropTouchStart);
+  c.removeEventListener('touchmove',onCropTouchMove);
+  c.removeEventListener('touchend',onCropTouchEnd);
+  document.getElementById('crop-overlay').classList.remove('show');
+}
+
+/* ══════════════════════════════════════════════════════
+   SERVICE WORKER REGISTRATION (PWA)
+══════════════════════════════════════════════════════ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .catch(err => console.warn('SW registration failed:', err));
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  S.isPortrait = checkOrientation();
+  if (S.isPortrait) showScreen('portrait-screen');
+  else startLandscapeFlow();
+});
+</script>
+</body>
+</html>
