@@ -359,6 +359,865 @@
     ══════════════════════════════════════════ */
     @keyframes fadeSlideUp  { from{opacity:0;transform:translateY(16px) translateX(-50%)} to{opacity:1;transform:translateY(0) translateX(-50%)} }
     @keyframes titleReveal  { from{opacity:0;transform:scale(0.94)} to{opacity:1;transform:scale(1)} }
+
+    /* ══════════════════════════════════════════════════
+       ████  QUICK MATCH SCREEN  ████
+    ══════════════════════════════════════════════════ */
+
+    #quick-match-screen {
+      background: linear-gradient(160deg, #FFAC33 0%, #FF8800 45%, #FF5D00 100%);
+      flex-direction: column;
+      /* entry animation state */
+      opacity: 0;
+      transform: scale(0.9);
+      transition: opacity 0.5s cubic-bezier(0.34,1.2,0.64,1),
+                  transform 0.5s cubic-bezier(0.34,1.3,0.64,1);
+    }
+    #quick-match-screen.qm-visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* FPS top-right (reuse mm-fps style) */
+    #qm-fps {
+      position: absolute; top: 10px; right: 14px;
+      color: rgba(80,30,0,0.45); font-size: 11px; font-weight: 800;
+      letter-spacing: 0.1em; font-family: 'Nunito', sans-serif;
+    }
+
+    /* ── BACK button (left, outside panel) ── */
+    #qm-back-btn {
+      position: absolute;
+      left: clamp(10px, 2vw, 28px);
+      top: 50%; transform: translateY(-50%);
+      width: 52px; height: 52px; border-radius: 50%;
+      background: rgba(255,255,255,0.88);
+      border: none; cursor: pointer; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 2px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.22), 0 2px 0 rgba(0,0,0,0.1);
+      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s;
+      z-index: 10;
+    }
+    #qm-back-btn:hover {
+      transform: translateY(-50%) scale(1.08);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.28);
+    }
+    #qm-back-btn .qm-back-arrow {
+      font-size: 18px; line-height: 1; color: #4a2400; font-weight: 900;
+    }
+    #qm-back-btn .qm-back-label {
+      font-family: 'Fredoka One', sans-serif;
+      font-size: 9px; color: #7a4400; letter-spacing: 0.06em; line-height: 1;
+    }
+
+    /* ── LEFT PANEL (player card) ── */
+    #qm-left-panel {
+      position: absolute;
+      left: clamp(72px, 9vw, 128px);
+      top: 50%; transform: translateY(-50%);
+      width: clamp(220px, 22vw, 280px);
+      background: linear-gradient(180deg, #FFE566 0%, #FFD020 100%);
+      border-radius: 22px;
+      padding: 22px 18px 18px;
+      box-shadow:
+        0 8px 0 rgba(180,100,0,0.28),
+        0 14px 32px rgba(0,0,0,0.22),
+        inset 0 1px 0 rgba(255,255,255,0.7);
+      display: flex; flex-direction: column; align-items: center; gap: 0;
+      /* entry anim prep */
+      opacity: 0; transform: translateY(-50%) translateX(-18px) scale(0.88);
+      transition: opacity 0.5s cubic-bezier(0.34,1.4,0.64,1),
+                  transform 0.5s cubic-bezier(0.34,1.4,0.64,1);
+    }
+    #qm-left-panel.qm-panel-in {
+      opacity: 1; transform: translateY(-50%) translateX(0) scale(1);
+    }
+
+    /* Avatar circle in panel */
+    #qm-panel-avatar {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: linear-gradient(145deg, #fff9e0, #ffe080);
+      border: 3px solid rgba(255,255,255,0.85);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.16);
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
+      margin-bottom: 10px; position: relative;
+    }
+    #qm-panel-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    /* Bunny avatar SVG default */
+    #qm-panel-name {
+      font-family: 'Fredoka One', sans-serif;
+      font-size: clamp(13px, 1.5vw, 16px);
+      color: #7A3800; letter-spacing: 0.06em; margin-bottom: 16px;
+    }
+
+    /* ── STATE 1: PARTY UP + START MATCH ── */
+    #qm-state-start { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+    #qm-state-matching { width: 100%; display: none; flex-direction: column; align-items: center; gap: 8px; }
+    #qm-state-matching.active { display: flex; }
+    #qm-state-start.hidden-state { display: none; }
+
+    /* PARTY UP button */
+    #qm-party-btn {
+      width: 100%; padding: 13px 0;
+      background: #fff; border: 2px solid #e0e0e0; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.08);
+      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s;
+    }
+    #qm-party-btn:hover {
+      transform: scale(1.04);
+      box-shadow: 0 5px 0 rgba(0,0,0,0.12), 0 8px 20px rgba(0,0,0,0.14);
+    }
+    .qm-party-icon {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(145deg, #60A5FA, #3B82F6);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .qm-party-icon svg { width: 14px; height: 14px; }
+    #qm-party-label {
+      font-family: 'Fredoka One', sans-serif;
+      font-size: clamp(14px, 1.6vw, 17px);
+      color: #1a0900; letter-spacing: 0.06em;
+    }
+
+    /* START MATCH big green button */
+    #qm-start-btn {
+      width: 100%; padding: 16px 0;
+      background: linear-gradient(180deg, #6EE649 0%, #3DBB1A 55%, #2DA010 100%);
+      border: none; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      cursor: pointer;
+      box-shadow:
+        0 6px 0 rgba(30,100,0,0.4),
+        0 10px 24px rgba(30,120,0,0.3),
+        inset 0 1px 0 rgba(255,255,255,0.35);
+      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1),
+                  box-shadow 0.18s ease;
+    }
+    #qm-start-btn:hover {
+      transform: scale(1.05) translateY(-2px);
+      box-shadow:
+        0 8px 0 rgba(30,100,0,0.35),
+        0 16px 32px rgba(30,120,0,0.38),
+        0 0 0 4px rgba(100,230,80,0.4),
+        inset 0 1px 0 rgba(255,255,255,0.35);
+    }
+    #qm-start-btn:active { transform: scale(0.97) translateY(0); }
+
+    .qm-start-arrow {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(145deg, #FFE000, #FFC000);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(180,100,0,0.4);
+      flex-shrink: 0;
+    }
+    .qm-start-arrow svg { width: 14px; height: 14px; }
+    #qm-start-label {
+      font-family: 'Fredoka One', sans-serif;
+      font-size: clamp(16px, 1.9vw, 20px);
+      color: #fff; letter-spacing: 0.07em;
+      text-shadow: 0 1px 3px rgba(0,80,0,0.4);
+    }
+
+    /* ── STATE 2: MATCHING ── */
+    #qm-matching-label {
+      font-family: 'Fredoka One', sans-serif;
+      font-size: clamp(16px, 1.9vw, 20px);
+      color: #B85A00; letter-spacing: 0.08em; margin-bottom: 4px;
+    }
+    #qm-timer {
+      font-family: 'Nunito', monospace;
+      font-size: clamp(38px, 5vw, 52px);
+      font-weight: 900; color: #1a0900;
+      letter-spacing: 0.04em; line-height: 1;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 0 rgba(0,0,0,0.1);
+    }
+
+    /* CANCEL button */
+    #qm-cancel-btn {
+      width: 100%; padding: 14px 0;
+      background: #fff; border: 2px solid #e0e0e0; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.08);
+      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s;
+    }
+    #qm-cancel-btn:hover {
+      transform: scale(1.04);
+      box-shadow: 0 5px 0 rgba(0,0,0,0.12), 0 8px 20px rgba(0,0,0,0.14);
+    }
+    .qm-cancel-x {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: linear-gradient(145deg, #FF6060, #E53535);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .qm-cancel-x svg { width: 12px; height: 12px; }
+    #qm-cancel-label {
+      font-family: 'Fredoka One', sans-serif;
+      font-size: clamp(14px, 1.6vw, 17px);
+      color: #1a0900; letter-spacing: 0.06em;
+    }
+
+    /* ── CENTER: CORGI ON SOFA ── */
+    #qm-center-scene {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -52%);
+      width: clamp(340px, 42vw, 560px);
+      display: flex; align-items: flex-end; justify-content: center;
+      /* entry anim */
+      opacity: 0; transition: opacity 0.6s ease 0.15s;
+    }
+    #qm-center-scene.qm-scene-in { opacity: 1; }
+
+    /* Sofa SVG wrapper */
+    #qm-sofa-wrap {
+      width: 100%;
+      position: relative;
+    }
+
+    /* Idle bob animation for corgi */
+    @keyframes corgiIdle {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      25%       { transform: translateY(-4px) rotate(0.5deg); }
+      75%       { transform: translateY(-2px) rotate(-0.5deg); }
+    }
+    #qm-corgi-svg {
+      position: absolute;
+      bottom: 32%;
+      left: 50%; transform: translateX(-50%);
+      width: 48%;
+      animation: corgiIdle 3.2s ease-in-out infinite;
+      transform-origin: bottom center;
+    }
+    /* Override — combine translateX with idle */
+    @keyframes corgiIdleFull {
+      0%, 100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+      25%       { transform: translateX(-50%) translateY(-5px) rotate(0.6deg); }
+      75%       { transform: translateX(-50%) translateY(-2px) rotate(-0.5deg); }
+    }
+    #qm-corgi-svg { animation: corgiIdleFull 3.2s ease-in-out infinite; }
+
+    /* Props on floor */
+    #qm-props-left, #qm-props-right {
+      position: absolute; bottom: 0;
+    }
+    #qm-props-left  { left: 4%; }
+    #qm-props-right { right: 4%; }
+
+    /* ── RIGHT: WEEKLY CHALLENGE PANEL ── */
+    #qm-right-panel {
+      position: absolute;
+      right: clamp(18px, 2.5vw, 40px);
+      top: 50%; transform: translateY(-50%);
+      width: clamp(240px, 24vw, 300px);
+      background: linear-gradient(180deg, #FFE566 0%, #FFD020 100%);
+      border-radius: 20px;
+      box-shadow:
+        0 8px 0 rgba(180,100,0,0.25),
+        0 14px 32px rgba(0,0,0,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.65);
+      overflow: hidden;
+      /* entry anim */
+      opacity: 0; transform: translateY(-50%) translateX(18px) scale(0.88);
+      transition: opacity 0.5s cubic-bezier(0.34,1.4,0.64,1) 0.1s,
+                  transform 0.5s cubic-bezier(0.34,1.4,0.64,1) 0.1s;
+    }
+    #qm-right-panel.qm-panel-in {
+      opacity: 1; transform: translateY(-50%) translateX(0) scale(1);
+    }
+
+    /* Challenge header */
+    #qm-challenge-header {
+      background: linear-gradient(135deg, #FF9A00 0%, #FF6B00 100%);
+      padding: 12px 14px 10px;
+      display: flex; align-items: center; gap: 10px;
+      position: relative;
+    }
+    #qm-trophy-icon { font-size: 28px; flex-shrink: 0; line-height: 1; }
+    #qm-challenge-title-wrap { flex: 1; }
+    #qm-challenge-title {
+      font-family: 'Fredoka One', sans-serif;
+      font-size: clamp(14px, 1.6vw, 18px);
+      color: #fff; letter-spacing: 0.05em; line-height: 1.1;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+    #qm-challenge-refresh {
+      display: flex; align-items: center; gap: 4px; margin-top: 3px;
+    }
+    #qm-challenge-refresh svg { width: 12px; height: 12px; }
+    #qm-challenge-refresh span {
+      font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800;
+      color: rgba(255,255,255,0.85); letter-spacing: 0.04em;
+    }
+
+    /* Challenge task list */
+    #qm-task-list { padding: 12px 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+
+    .qm-task {
+      background: rgba(255,255,255,0.65);
+      border-radius: 12px;
+      padding: 8px 10px;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    /* Reward badge (x1000 etc) */
+    .qm-task-reward {
+      display: flex; flex-direction: column; align-items: center;
+      background: linear-gradient(145deg, #7ECC44, #4EA820);
+      border-radius: 8px; padding: 3px 5px; flex-shrink: 0;
+      min-width: 36px;
+      box-shadow: 0 2px 6px rgba(60,120,0,0.3);
+    }
+    .qm-task-reward-icon { font-size: 13px; line-height: 1; }
+    .qm-task-reward-val {
+      font-family: 'Nunito', sans-serif; font-size: 8px; font-weight: 900;
+      color: #fff; letter-spacing: 0.04em; line-height: 1;
+    }
+
+    .qm-task-info { flex: 1; min-width: 0; }
+    .qm-task-desc {
+      font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800;
+      color: #3d1800; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .qm-task-progress-wrap {
+      height: 7px; background: rgba(0,0,0,0.12); border-radius: 10px; overflow: hidden; margin-top: 4px;
+    }
+    .qm-task-progress-bar {
+      height: 100%; border-radius: 10px;
+      background: linear-gradient(90deg, #FF9A00, #FF6800);
+      transition: width 0.5s ease;
+    }
+    .qm-task-progress-bar.full { background: linear-gradient(90deg, #5DD12A, #3CB810); }
+
+    .qm-task-right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .qm-task-count { font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 800; color: #6b3000; }
+    .qm-task-check {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: linear-gradient(145deg, #6EE03A, #3DB810);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 6px rgba(50,120,0,0.35);
+      flex-shrink: 0;
+    }
+    .qm-task-check svg { width: 11px; height: 11px; }
+
+    /* ── BOTTOM CAROUSEL ── */
+    #qm-carousel-wrap {
+      position: absolute;
+      bottom: 58px; /* above bottom bar */
+      left: 50%; transform: translateX(-50%);
+      width: clamp(680px, 78vw, 1020px);
+      display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 8px;
+      scrollbar-width: none;
+      /* entry anim */
+      opacity: 0; transform: translateX(-50%) translateY(20px);
+      transition: opacity 0.5s ease 0.2s, transform 0.5s ease 0.2s;
+    }
+    #qm-carousel-wrap::-webkit-scrollbar { display: none; }
+    #qm-carousel-wrap.qm-carousel-in {
+      opacity: 1; transform: translateX(-50%) translateY(0);
+    }
+
+    .qm-game-card {
+      flex-shrink: 0;
+      width: clamp(148px, 16vw, 200px);
+      height: clamp(52px, 6vw, 68px);
+      border-radius: 14px;
+      background: rgba(30,15,0,0.75);
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 12px;
+      cursor: pointer; position: relative; overflow: hidden;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s;
+    }
+    .qm-game-card:hover {
+      transform: scale(1.06) translateY(-2px);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.45);
+    }
+    .qm-game-card-bg {
+      position: absolute; inset: 0; opacity: 0.35;
+      border-radius: 14px;
+      background-size: cover; background-position: center;
+    }
+    .qm-game-card-label {
+      font-family: 'Fredoka One', sans-serif;
+      font-size: clamp(11px, 1.2vw, 14px);
+      color: #fff; letter-spacing: 0.05em; line-height: 1.2; z-index: 1;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    }
+    /* "NEW" badge */
+    .qm-new-badge {
+      position: absolute; top: 6px; left: 6px;
+      background: linear-gradient(135deg, #4ADE40, #22C520);
+      color: #fff; font-family: 'Nunito', sans-serif;
+      font-size: 8px; font-weight: 900; letter-spacing: 0.06em;
+      padding: 2px 6px; border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,100,0,0.3);
+      z-index: 2;
+    }
+    /* Checkmark badge (completed modes) */
+    .qm-check-badge {
+      position: absolute; top: 6px; right: 6px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: linear-gradient(145deg, #6EE03A, #3DB810);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 4px rgba(50,120,0,0.35);
+      z-index: 2;
+    }
+    .qm-check-badge svg { width: 10px; height: 10px; }
+
+    /* Carousel game card icons (CSS shapes) */
+    .qm-card-icon { width: 36px; height: 36px; flex-shrink: 0; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; z-index: 1; }
+
+    /* ── BOTTOM BAR (Quick Match version, same as Main Menu) ── */
+    #qm-bottom-bar {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 56px;
+      background: linear-gradient(180deg, #FFF0A0 0%, #FFD832 100%);
+      border-top: 2px solid rgba(200,150,0,0.35);
+      display: flex; align-items: center; padding: 0 14px; gap: 0;
+      box-shadow: 0 -3px 16px rgba(180,100,0,0.15);
+      /* entry anim */
+      opacity: 0; transform: translateY(100%);
+      transition: opacity 0.5s ease 0.25s, transform 0.5s ease 0.25s;
+    }
+    #qm-bottom-bar.qm-bar-in {
+      opacity: 1; transform: translateY(0);
+    }
+
+    /* ─ Panel left-right switch animation ─ */
+    @keyframes qmPanelSwitch {
+      0%   { opacity:1; transform:translateY(-50%) scale(1); }
+      40%  { opacity:0; transform:translateY(-50%) scale(0.92) translateX(-8px); }
+      60%  { opacity:0; transform:translateY(-50%) scale(0.92) translateX(-8px); }
+      100% { opacity:1; transform:translateY(-50%) scale(1); }
+    }
+    .qm-panel-switching {
+      animation: qmPanelSwitch 0.38s cubic-bezier(0.4,0,0.2,1) forwards;
+    }
+
+    /* Matching pulse on timer */
+    @keyframes matchingPulse {
+      0%,100% { color: #1a0900; text-shadow: 0 2px 0 rgba(0,0,0,0.1); }
+      50%      { color: #B85A00; text-shadow: 0 0 18px rgba(255,140,0,0.5); }
+    }
+    #qm-timer.pulsing { animation: matchingPulse 1.4s ease-in-out infinite; }
+
+    /* ══════════════════════════════════════════════════════════
+       ████  CHARACTER SELECT SCREEN  ████
+       Matches Party Animals locker-room reference exactly
+    ══════════════════════════════════════════════════════════ */
+
+    #character-select-screen {
+      /* Locker room: dark warm grey floor + dark wall */
+      background: linear-gradient(180deg, #3a3330 0%, #4a4240 30%, #6b5e50 65%, #8a7860 100%);
+      flex-direction: column;
+      position: relative; overflow: hidden;
+      /* Entry: scale + bounce */
+      opacity: 0;
+      transform: scale(0.9);
+      transition: opacity 0.6s cubic-bezier(0.34,1.3,0.64,1),
+                  transform 0.6s cubic-bezier(0.34,1.3,0.64,1);
+    }
+    #character-select-screen.cs-visible {
+      opacity: 1; transform: scale(1);
+    }
+
+    /* ─── Locker room background layer ─── */
+    #cs-bg {
+      position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+    }
+
+    /* ─── TOP TIMER PILL ─── */
+    #cs-timer-pill {
+      position: absolute;
+      top: 16px; left: 50%; transform: translateX(-50%);
+      background: #fff;
+      border-radius: 50px;
+      padding: 8px 28px 8px 20px;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.28), 0 1px 0 rgba(255,255,255,0.9);
+      z-index: 20;
+      min-width: 120px; justify-content: center;
+    }
+    #cs-timer-icon { font-size: 22px; line-height: 1; flex-shrink: 0; }
+    #cs-timer-val {
+      font-family: 'Nunito', sans-serif;
+      font-size: clamp(28px, 4vw, 46px);
+      font-weight: 900; color: #1a0900;
+      letter-spacing: 0.02em; line-height: 1;
+    }
+
+    /* ─── CHARACTER STAGE (8 big characters in a row) ─── */
+    #cs-stage {
+      position: absolute;
+      left: 0; right: 0;
+      top: 58px; bottom: 176px; /* above bottom UI */
+      display: flex; align-items: flex-end; justify-content: center;
+      gap: 0;
+      padding: 0 20px;
+      /* entry anim */
+      opacity: 0;
+      transition: opacity 0.5s ease 0.15s;
+    }
+    #cs-stage.cs-stage-in { opacity: 1; }
+
+    /* Each character slot */
+    .cs-char-slot {
+      position: relative;
+      display: flex; flex-direction: column; align-items: center;
+      flex: 1; max-width: 160px;
+      cursor: default;
+    }
+
+    /* YOU label */
+    .cs-you-label {
+      position: absolute;
+      top: -8px; left: 50%; transform: translateX(-50%);
+      background: #E53535;
+      color: #fff; font-family: 'Fredoka One', sans-serif;
+      font-size: 13px; letter-spacing: 0.06em;
+      padding: 3px 12px; border-radius: 20px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+      white-space: nowrap; z-index: 5;
+    }
+
+    /* Player name tooltip (Inhumane etc.) */
+    .cs-player-label {
+      position: absolute;
+      top: 14px; left: 50%; transform: translateX(-50%);
+      background: rgba(240,100,80,0.92);
+      color: #fff; font-family: 'Nunito', sans-serif;
+      font-size: 11px; font-weight: 800; letter-spacing: 0.04em;
+      padding: 3px 10px; border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      white-space: nowrap; z-index: 5;
+    }
+
+    /* Floating checkmark above character */
+    .cs-checkmark {
+      position: absolute;
+      top: -4px; left: 50%; transform: translateX(-50%);
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(145deg, #FFE040, #FFC000);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 3px 10px rgba(200,120,0,0.5);
+      z-index: 5;
+      animation: csCheckBob 2.4s ease-in-out infinite;
+    }
+    .cs-checkmark svg { width: 14px; height: 14px; }
+    @keyframes csCheckBob {
+      0%,100% { transform: translateX(-50%) translateY(0); }
+      50%      { transform: translateX(-50%) translateY(-5px); }
+    }
+
+    /* Character SVG wrapper — idle animation */
+    .cs-char-figure {
+      width: 100%; height: 100%;
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    .cs-char-figure svg { width: 100%; height: auto; display: block; }
+
+    /* Each character idle uses a slight offset so they're not in sync */
+    @keyframes csIdleA {
+      0%,100% { transform: translateY(0)   rotate(0deg); }
+      30%      { transform: translateY(-5px) rotate(0.5deg); }
+      70%      { transform: translateY(-2px) rotate(-0.4deg); }
+    }
+    @keyframes csIdleB {
+      0%,100% { transform: translateY(0)   rotate(0deg); }
+      40%      { transform: translateY(-6px) rotate(-0.5deg); }
+      80%      { transform: translateY(-3px) rotate(0.3deg); }
+    }
+    @keyframes csIdleC {
+      0%,100% { transform: translateY(0)   rotate(0deg); }
+      25%      { transform: translateY(-4px) rotate(0.4deg); }
+      75%      { transform: translateY(-2px) rotate(-0.3deg); }
+    }
+    .cs-char-figure.idle-a { animation: csIdleA 3.0s ease-in-out infinite; }
+    .cs-char-figure.idle-b { animation: csIdleB 3.4s ease-in-out infinite; }
+    .cs-char-figure.idle-c { animation: csIdleC 2.8s ease-in-out infinite; }
+
+    /* ─── LOCKER BANK backdrop ─── */
+    #cs-lockers {
+      position: absolute;
+      left: 0; right: 0;
+      top: 58px;
+      height: 56%;
+      display: flex; align-items: stretch; justify-content: center;
+      gap: 3px; padding: 0 40px;
+      pointer-events: none; z-index: 0;
+    }
+    .cs-locker {
+      flex: 1; max-width: 120px;
+      background: linear-gradient(180deg, #8A9EB0 0%, #6A7E8E 60%, #5A6E7E 100%);
+      border-radius: 6px 6px 0 0;
+      border: 1.5px solid rgba(255,255,255,0.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 2px 8px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    /* Locker handle */
+    .cs-locker::after {
+      content: '';
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      width: 6px; height: 18px; border-radius: 3px;
+      background: rgba(255,255,255,0.25);
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+    }
+    /* Locker vent lines */
+    .cs-locker::before {
+      content: '';
+      position: absolute; left: 8px; top: 30%;
+      width: 60%; height: 2px;
+      background: rgba(0,0,0,0.2);
+      box-shadow: 0 6px 0 rgba(0,0,0,0.15), 0 12px 0 rgba(0,0,0,0.1);
+    }
+    /* Open locker (for player slot) */
+    .cs-locker.open {
+      background: linear-gradient(180deg, #6A7E8E 0%, #4A6070 40%, #2a3840 100%);
+      border-color: rgba(255,255,255,0.08);
+    }
+
+    /* Punching bag (far left) */
+    #cs-punchbag {
+      position: absolute;
+      left: clamp(10px, 3vw, 48px);
+      top: 14%;
+      width: clamp(48px, 5vw, 72px);
+      z-index: 1;
+    }
+
+    /* Fire extinguisher (far right) */
+    #cs-fireext {
+      position: absolute;
+      right: clamp(36px, 5vw, 80px);
+      top: 28%;
+      width: clamp(28px, 3vw, 42px);
+      z-index: 1;
+    }
+
+    /* Sticky note on wall */
+    #cs-stickynote {
+      position: absolute;
+      right: clamp(90px, 8vw, 130px);
+      top: 24%;
+      width: 28px; height: 26px;
+      background: #FFE566;
+      transform: rotate(3deg);
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.25);
+    }
+
+    /* ─── BOTTOM CHARACTER PICKER ROW ─── */
+    #cs-picker-wrap {
+      position: absolute;
+      bottom: 108px;
+      left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 0;
+      /* entry anim */
+      opacity: 0; transform: translateX(-50%) translateY(16px);
+      transition: opacity 0.5s ease 0.2s, transform 0.5s ease 0.2s;
+    }
+    #cs-picker-wrap.cs-picker-in {
+      opacity: 1; transform: translateX(-50%) translateY(0);
+    }
+    #cs-picker-row {
+      display: flex; gap: 8px; align-items: center;
+      overflow-x: auto; max-width: 88vw;
+      padding: 6px 4px; scrollbar-width: none;
+    }
+    #cs-picker-row::-webkit-scrollbar { display: none; }
+
+    .cs-icon-btn {
+      width: clamp(52px, 6vw, 70px);
+      height: clamp(52px, 6vw, 70px);
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      border: 3px solid rgba(255,255,255,0.25);
+      overflow: hidden; flex-shrink: 0; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1),
+                  border-color 0.18s, box-shadow 0.18s;
+      position: relative;
+    }
+    .cs-icon-btn:hover {
+      transform: scale(1.1);
+      border-color: rgba(255,220,60,0.7);
+      box-shadow: 0 0 0 2px rgba(255,200,0,0.4);
+    }
+    .cs-icon-btn.selected {
+      border: 3.5px solid #FFD700;
+      box-shadow:
+        0 0 0 3px rgba(255,200,0,0.4),
+        0 4px 16px rgba(255,180,0,0.5);
+      transform: scale(1.08);
+      background: rgba(255,220,50,0.18);
+    }
+    .cs-icon-btn svg { width: 90%; height: 90%; display: block; }
+
+    /* ─── BOTTOM ACTION BAR ─── */
+    #cs-action-bar {
+      position: absolute;
+      bottom: 56px; left: 0; right: 0;
+      height: 52px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 clamp(14px, 2vw, 28px);
+      /* entry anim */
+      opacity: 0; transform: translateY(12px);
+      transition: opacity 0.5s ease 0.25s, transform 0.5s ease 0.25s;
+    }
+    #cs-action-bar.cs-bar-in { opacity: 1; transform: translateY(0); }
+
+    /* SELECT CHARACTER label (bottom-left) */
+    #cs-select-label {
+      display: flex; align-items: center; gap: 6px;
+      color: rgba(255,255,255,0.5); font-family: 'Nunito', sans-serif;
+      font-size: 12px; font-weight: 800; letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    #cs-select-label span {
+      display: inline-block; width: 22px; height: 14px; border-radius: 3px;
+      background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.3);
+      font-size: 9px; color: rgba(255,255,255,0.6); text-align: center; line-height: 12px;
+      font-weight: 900;
+    }
+
+    /* READY / STARTING button (center) */
+    #cs-ready-btn {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      padding: 13px 48px;
+      border: none; border-radius: 50px;
+      display: flex; align-items: center; gap: 12px;
+      cursor: pointer;
+      font-family: 'Fredoka One', sans-serif;
+      font-size: clamp(18px, 2.2vw, 24px);
+      letter-spacing: 0.08em;
+      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1),
+                  box-shadow 0.18s, background 0.3s;
+    }
+    /* READY state — yellow/gold */
+    #cs-ready-btn.state-ready {
+      background: linear-gradient(180deg, #FFE040 0%, #FFB800 55%, #FF9A00 100%);
+      color: #5a2800;
+      box-shadow:
+        0 6px 0 rgba(160,80,0,0.4),
+        0 10px 24px rgba(200,100,0,0.3),
+        inset 0 1px 0 rgba(255,255,255,0.5);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+    }
+    #cs-ready-btn.state-ready:hover {
+      transform: translateX(-50%) scale(1.06) translateY(-2px);
+      box-shadow:
+        0 8px 0 rgba(160,80,0,0.35),
+        0 16px 32px rgba(200,100,0,0.38),
+        0 0 0 4px rgba(255,220,60,0.45),
+        inset 0 1px 0 rgba(255,255,255,0.5);
+    }
+    #cs-ready-btn.state-ready:active { transform: translateX(-50%) scale(0.97); }
+
+    /* STARTING state — green with diagonal stripes */
+    #cs-ready-btn.state-starting {
+      background: linear-gradient(180deg, #6EE649 0%, #3DBB1A 55%, #2DA010 100%);
+      color: #fff;
+      box-shadow:
+        0 6px 0 rgba(30,100,0,0.4),
+        0 10px 28px rgba(40,140,0,0.35),
+        inset 0 1px 0 rgba(255,255,255,0.35);
+      text-shadow: 0 2px 4px rgba(0,60,0,0.4);
+      overflow: hidden;
+      pointer-events: none; /* disable clicks during starting */
+    }
+    /* Animated diagonal stripe overlay */
+    #cs-ready-btn.state-starting::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        -50deg,
+        transparent,
+        transparent 10px,
+        rgba(255,255,255,0.07) 10px,
+        rgba(255,255,255,0.07) 20px
+      );
+      background-size: 200% 100%;
+      animation: csStripeScroll 0.8s linear infinite;
+    }
+    @keyframes csStripeScroll {
+      from { background-position: 0 0; }
+      to   { background-position: 60px 0; }
+    }
+
+    /* Ready icon (hand/controller emoji wrapper) */
+    .cs-btn-icon {
+      width: 30px; height: 30px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; line-height: 1; position: relative; z-index: 1;
+    }
+    .cs-btn-text { position: relative; z-index: 1; }
+
+    /* CHANGE OUTFIT (bottom-right) */
+    #cs-outfit-btn {
+      display: flex; align-items: center; gap: 5px;
+      color: rgba(255,255,255,0.5); font-family: 'Nunito', sans-serif;
+      font-size: 12px; font-weight: 800; letter-spacing: 0.1em;
+      cursor: pointer; text-transform: uppercase;
+      transition: color 0.15s;
+    }
+    #cs-outfit-btn:hover { color: rgba(255,255,255,0.85); }
+    #cs-outfit-btn span {
+      display: inline-block; width: 22px; height: 14px; border-radius: 3px;
+      background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.3);
+      font-size: 9px; color: rgba(255,255,255,0.6); text-align: center; line-height: 12px;
+      font-weight: 900;
+    }
+
+    /* ─── BOTTOM BAR (Character Select — same as rest of game) ─── */
+    #cs-bottom-bar {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 56px;
+      background: linear-gradient(180deg, #FFF0A0 0%, #FFD832 100%);
+      border-top: 2px solid rgba(200,150,0,0.35);
+      display: flex; align-items: center; padding: 0 14px; gap: 0;
+      box-shadow: 0 -3px 16px rgba(180,100,0,0.15);
+      opacity: 0; transform: translateY(100%);
+      transition: opacity 0.5s ease 0.3s, transform 0.5s ease 0.3s;
+    }
+    #cs-bottom-bar.cs-bottombar-in {
+      opacity: 1; transform: translateY(0);
+    }
+
+    /* ─── Starting overlay countdown flash ─── */
+    #cs-starting-overlay {
+      position: absolute; inset: 0; background: rgba(0,0,0,0);
+      pointer-events: none; z-index: 50;
+      transition: background 0.3s ease;
+    }
+    #cs-starting-overlay.flash { background: rgba(80,200,40,0.18); }
+
+    /* ─── Checkmark scale-in pop ─── */
+    @keyframes checkPop {
+      0%   { transform: translateX(-50%) scale(0); opacity: 0; }
+      60%  { transform: translateX(-50%) scale(1.25); opacity: 1; }
+      100% { transform: translateX(-50%) scale(1); opacity: 1; }
+    }
+    .cs-checkmark.popping {
+      animation: checkPop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards,
+                 csCheckBob 2.4s ease-in-out 0.4s infinite;
+    }
+
+    /* ─── Character icon scale-select feedback ─── */
+    @keyframes csIconSelect {
+      0%   { transform: scale(1.08); }
+      40%  { transform: scale(1.22); }
+      100% { transform: scale(1.08); }
+    }
+    .cs-icon-btn.just-selected {
+      animation: csIconSelect 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+
   </style>
 </head>
 <body>
@@ -452,7 +1311,7 @@
     <!-- ══ LEFT: vertical menu column ══ -->
     <div id="mm-left">
 
-      <!-- QUICK MATCH — pill with arrow -->
+      <!-- QUICK MATCH — pill with arrow → opens Quick Match screen -->
       <button id="mm-quick-match" onclick="onMenuClick('Quick Match')" aria-label="Quick Match">
         <div class="mm-arrow-circle">
           <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -626,6 +1485,1070 @@
 
   </div><!-- /#main-menu -->
 
+  <!-- ══════════════════════════════════════════════════
+       QUICK MATCH SCREEN
+       State 1: Start Match (Party Up + Start Match)
+       State 2: Matching  (Timer + Cancel)
+  ══════════════════════════════════════════════════ -->
+  <div id="quick-match-screen" class="screen hidden-screen">
+
+    <!-- FPS / PING -->
+    <div id="qm-fps">FPS: 42 &nbsp;&nbsp; PING: 0</div>
+
+    <!-- BACK button -->
+    <button id="qm-back-btn" onclick="qmGoBack()" aria-label="Back">
+      <span class="qm-back-arrow">&#9664;</span>
+      <span class="qm-back-label">BACK</span>
+    </button>
+
+    <!-- ═══ LEFT PANEL ═══ -->
+    <div id="qm-left-panel">
+
+      <!-- Player avatar -->
+      <div id="qm-panel-avatar">
+        <!-- Bunny avatar: inline SVG (cute hamster with yellow helmet) -->
+        <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+          <!-- Helmet -->
+          <ellipse cx="40" cy="24" rx="26" ry="16" fill="#FFD700" stroke="#E8B800" stroke-width="1.5"/>
+          <ellipse cx="40" cy="22" rx="24" ry="11" fill="#FFE040"/>
+          <!-- Helmet brim -->
+          <rect x="14" y="29" width="52" height="5" rx="2.5" fill="#FFD700" stroke="#E8B800" stroke-width="1"/>
+          <!-- Helmet strap -->
+          <path d="M22 34 Q20 44 24 46" stroke="#E8B800" stroke-width="1.5" fill="none"/>
+          <path d="M58 34 Q60 44 56 46" stroke="#E8B800" stroke-width="1.5" fill="none"/>
+          <!-- Face -->
+          <ellipse cx="40" cy="52" rx="20" ry="18" fill="#FFF0E0"/>
+          <!-- Ears -->
+          <ellipse cx="24" cy="38" rx="6" ry="9" fill="#FFF0E0" stroke="#F0D0B0" stroke-width="1"/>
+          <ellipse cx="24" cy="39" rx="3.5" ry="5.5" fill="#FFD0C0" opacity="0.6"/>
+          <ellipse cx="56" cy="38" rx="6" ry="9" fill="#FFF0E0" stroke="#F0D0B0" stroke-width="1"/>
+          <ellipse cx="56" cy="39" rx="3.5" ry="5.5" fill="#FFD0C0" opacity="0.6"/>
+          <!-- Eyes -->
+          <circle cx="33" cy="50" r="4" fill="#1a0900"/>
+          <circle cx="34.2" cy="48.8" r="1.4" fill="#fff"/>
+          <circle cx="47" cy="50" r="4" fill="#1a0900"/>
+          <circle cx="48.2" cy="48.8" r="1.4" fill="#fff"/>
+          <!-- Nose -->
+          <ellipse cx="40" cy="56" rx="3.5" ry="2.5" fill="#FFB0A0"/>
+          <!-- Mouth -->
+          <path d="M36 59 Q40 62 44 59" stroke="#CC8070" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+          <!-- Cheek blush -->
+          <ellipse cx="29" cy="55" rx="4" ry="2.5" fill="#FFB0B0" opacity="0.55"/>
+          <ellipse cx="51" cy="55" rx="4" ry="2.5" fill="#FFB0B0" opacity="0.55"/>
+          <!-- Collar bow (blue) -->
+          <path d="M32 68 Q40 72 48 68" stroke="#6090E0" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <circle cx="40" cy="69" r="3" fill="#6090E0"/>
+        </svg>
+      </div>
+
+      <div id="qm-panel-name">AWOKAWOK</div>
+
+      <!-- STATE 1: Party Up + Start Match -->
+      <div id="qm-state-start">
+        <button id="qm-party-btn" onclick="qmPartyUp()">
+          <div class="qm-party-icon">
+            <!-- People/group icon -->
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17 20H22V18C22 16.3 20.7 15 19 15C18.2 15 17.5 15.3 17 15.9" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+              <path d="M2 20H17V18C17 15.8 15.2 14 13 14H7C4.8 14 3 15.8 3 18V20" stroke="#fff" stroke-width="2"/>
+              <circle cx="10" cy="8" r="3.5" stroke="#fff" stroke-width="2"/>
+              <circle cx="19" cy="10" r="2.5" stroke="#fff" stroke-width="1.8"/>
+            </svg>
+          </div>
+          <span id="qm-party-label">PARTY UP</span>
+        </button>
+
+        <button id="qm-start-btn" onclick="qmStartMatch()">
+          <div class="qm-start-arrow">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 2L13.5 8L4 14V2Z" fill="#7B3A00"/>
+            </svg>
+          </div>
+          <span id="qm-start-label">START MATCH</span>
+        </button>
+      </div>
+
+      <!-- STATE 2: Matching timer + Cancel -->
+      <div id="qm-state-matching">
+        <div id="qm-matching-label">MATCHING</div>
+        <div id="qm-timer" class="pulsing">00:00</div>
+        <button id="qm-cancel-btn" onclick="qmCancelMatch()">
+          <div class="qm-cancel-x">
+            <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 2L10 10M10 2L2 10" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span id="qm-cancel-label">CANCEL</span>
+        </button>
+      </div>
+
+    </div><!-- /#qm-left-panel -->
+
+    <!-- ═══ CENTER: Corgi on sofa ═══ -->
+    <div id="qm-center-scene">
+      <div id="qm-sofa-wrap">
+        <!-- Full sofa + corgi SVG scene -->
+        <svg viewBox="0 0 560 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">
+
+          <!-- ── SOFA ── -->
+          <!-- Sofa base/body -->
+          <rect x="60" y="200" width="440" height="130" rx="28" fill="#9AA0A6"/>
+          <rect x="60" y="200" width="440" height="130" rx="28" fill="url(#sofaGrad)"/>
+          <!-- Sofa arm left -->
+          <rect x="42" y="176" width="72" height="154" rx="22" fill="#8A9098"/>
+          <rect x="42" y="176" width="72" height="154" rx="22" fill="url(#armGrad)"/>
+          <!-- Sofa arm right -->
+          <rect x="446" y="176" width="72" height="154" rx="22" fill="#8A9098"/>
+          <rect x="446" y="176" width="72" height="154" rx="22" fill="url(#armGrad)"/>
+          <!-- Sofa back cushion left -->
+          <rect x="78" y="152" width="192" height="90" rx="20" fill="#A8AEB4"/>
+          <rect x="78" y="152" width="192" height="90" rx="20" fill="url(#cushionGrad)" opacity="0.9"/>
+          <!-- Sofa back cushion right -->
+          <rect x="290" y="152" width="192" height="90" rx="20" fill="#A8AEB4"/>
+          <rect x="290" y="152" width="192" height="90" rx="20" fill="url(#cushionGrad)" opacity="0.9"/>
+          <!-- Sofa seat cushion left -->
+          <rect x="82" y="218" width="186" height="82" rx="16" fill="#B2B8BE" opacity="0.7"/>
+          <!-- Sofa seat cushion right -->
+          <rect x="294" y="218" width="186" height="82" rx="16" fill="#B2B8BE" opacity="0.7"/>
+          <!-- Sofa legs -->
+          <rect x="96"  y="320" width="18" height="24" rx="8" fill="#6B7280"/>
+          <rect x="446" y="320" width="18" height="24" rx="8" fill="#6B7280"/>
+          <rect x="180" y="320" width="14" height="20" rx="6" fill="#7A8290" opacity="0.7"/>
+          <rect x="366" y="320" width="14" height="20" rx="6" fill="#7A8290" opacity="0.7"/>
+          <!-- Sofa back top highlight -->
+          <rect x="78" y="152" width="404" height="12" rx="10" fill="rgba(255,255,255,0.18)"/>
+          <!-- Throw pillow (beige, left leaning) -->
+          <ellipse cx="198" cy="208" rx="52" ry="56" fill="#D4C4A0" transform="rotate(-12,198,208)"/>
+          <ellipse cx="198" cy="208" rx="42" ry="46" fill="#E0D0B0" opacity="0.7" transform="rotate(-12,198,208)"/>
+
+          <!-- SVG gradients -->
+          <defs>
+            <linearGradient id="sofaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#B0B8C0"/>
+              <stop offset="100%" stop-color="#8A9098"/>
+            </linearGradient>
+            <linearGradient id="armGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#C0C8D0"/>
+              <stop offset="100%" stop-color="#8A9098"/>
+            </linearGradient>
+            <linearGradient id="cushionGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#D0D8E0"/>
+              <stop offset="100%" stop-color="#A0A8B0"/>
+            </linearGradient>
+          </defs>
+
+          <!-- ── CORGI (sitting on sofa, front-facing) ── -->
+          <g id="qm-corgi-svg">
+            <!-- Shadow under corgi -->
+            <ellipse cx="280" cy="310" rx="62" ry="10" fill="rgba(0,0,0,0.12)"/>
+            <!-- Body orange -->
+            <ellipse cx="280" cy="260" rx="68" ry="72" fill="#E8651A"/>
+            <!-- Belly white -->
+            <ellipse cx="280" cy="278" rx="44" ry="52" fill="#FFF8F0"/>
+            <!-- Front paws (sitting) -->
+            <ellipse cx="238" cy="310" rx="22" ry="16" fill="#E8651A"/>
+            <ellipse cx="322" cy="310" rx="22" ry="16" fill="#E8651A"/>
+            <ellipse cx="238" cy="316" rx="16" ry="10" fill="#FFF8F0"/>
+            <ellipse cx="322" cy="316" rx="16" ry="10" fill="#FFF8F0"/>
+            <!-- Paw pink pads -->
+            <ellipse cx="238" cy="318" rx="8" ry="5" fill="#FFB0B0" opacity="0.8"/>
+            <ellipse cx="322" cy="318" rx="8" ry="5" fill="#FFB0B0" opacity="0.8"/>
+            <!-- Collar/scarf red -->
+            <rect x="248" y="212" width="64" height="16" rx="8" fill="#E53535"/>
+            <rect x="254" y="218" width="52" height="8" rx="4" fill="#FF6060" opacity="0.6"/>
+            <!-- Neck -->
+            <rect x="256" y="196" width="48" height="24" rx="14" fill="#E8651A"/>
+            <!-- Head -->
+            <ellipse cx="280" cy="172" rx="58" ry="52" fill="#E8651A"/>
+            <!-- White face patch -->
+            <ellipse cx="280" cy="184" rx="40" ry="34" fill="#FFF8F0"/>
+            <!-- Ear left (big corgi ear) -->
+            <ellipse cx="234" cy="142" rx="24" ry="34" fill="#E8651A" transform="rotate(-12,234,142)"/>
+            <ellipse cx="234" cy="146" rx="14" ry="22" fill="#C4440A" opacity="0.45" transform="rotate(-12,234,146)"/>
+            <!-- Ear right -->
+            <ellipse cx="326" cy="142" rx="24" ry="34" fill="#E8651A" transform="rotate(12,326,142)"/>
+            <ellipse cx="326" cy="146" rx="14" ry="22" fill="#C4440A" opacity="0.45" transform="rotate(12,326,146)"/>
+            <!-- Eyes -->
+            <circle cx="260" cy="170" r="13" fill="#1f2937"/>
+            <circle cx="262.5" cy="167" r="5" fill="#fff"/>
+            <circle cx="300" cy="170" r="13" fill="#1f2937"/>
+            <circle cx="302.5" cy="167" r="5" fill="#fff"/>
+            <!-- Eyebrow highlights -->
+            <ellipse cx="260" cy="155" rx="8" ry="3.5" fill="#C4440A" opacity="0.5" transform="rotate(-5,260,155)"/>
+            <ellipse cx="300" cy="155" rx="8" ry="3.5" fill="#C4440A" opacity="0.5" transform="rotate(5,300,155)"/>
+            <!-- Nose -->
+            <ellipse cx="280" cy="186" rx="13" ry="9" fill="#1f2937"/>
+            <ellipse cx="276" cy="183" rx="4" ry="2.5" fill="#fff" opacity="0.55"/>
+            <!-- Mouth -->
+            <path d="M268 196 Q280 205 292 196" stroke="#1f2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <!-- Cheek blush -->
+            <ellipse cx="245" cy="185" rx="12" ry="7" fill="#FFB0B0" opacity="0.45"/>
+            <ellipse cx="315" cy="185" rx="12" ry="7" fill="#FFB0B0" opacity="0.45"/>
+            <!-- Body highlight -->
+            <ellipse cx="258" cy="248" rx="16" ry="28" fill="#fff" opacity="0.1"/>
+          </g>
+
+        </svg><!-- end scene SVG -->
+
+        <!-- Red cups (left and right of sofa, DOM elements for flexibility) -->
+        <div style="position:absolute;bottom:7%;left:7%;display:flex;flex-direction:column;align-items:center;gap:0;">
+          <!-- Tipped over pencil/cone -->
+          <svg viewBox="0 0 40 60" width="36" height="54" style="transform:rotate(-55deg);margin-bottom:-12px;">
+            <rect x="10" y="8" width="20" height="46" rx="4" fill="#FFD700" stroke="#E8A000" stroke-width="1.5"/>
+            <polygon points="10,8 30,8 20,0" fill="#E8A000"/>
+          </svg>
+          <!-- Red cup -->
+          <svg viewBox="0 0 40 52" width="34" height="46">
+            <path d="M6 4 L8 50 Q8 52 10 52 L30 52 Q32 52 32 50 L34 4 Z" fill="#E53535" stroke="#CC2020" stroke-width="1"/>
+            <rect x="4" y="0" width="32" height="8" rx="4" fill="#CC2020"/>
+            <rect x="8" y="2" width="24" height="4" rx="2" fill="#FF6060" opacity="0.5"/>
+          </svg>
+        </div>
+        <div style="position:absolute;bottom:7%;right:7%;">
+          <!-- Red cup right -->
+          <svg viewBox="0 0 40 52" width="34" height="46">
+            <path d="M6 4 L8 50 Q8 52 10 52 L30 52 Q32 52 32 50 L34 4 Z" fill="#E53535" stroke="#CC2020" stroke-width="1"/>
+            <rect x="4" y="0" width="32" height="8" rx="4" fill="#CC2020"/>
+            <rect x="8" y="2" width="24" height="4" rx="2" fill="#FF6060" opacity="0.5"/>
+          </svg>
+        </div>
+
+      </div><!-- /#qm-sofa-wrap -->
+    </div><!-- /#qm-center-scene -->
+
+    <!-- ═══ RIGHT: WEEKLY CHALLENGE PANEL ═══ -->
+    <div id="qm-right-panel">
+      <!-- Header -->
+      <div id="qm-challenge-header">
+        <div id="qm-trophy-icon">🏆</div>
+        <div id="qm-challenge-title-wrap">
+          <div id="qm-challenge-title">WEEKLY CHALLENGE</div>
+          <div id="qm-challenge-refresh">
+            <!-- Clock icon -->
+            <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="6" cy="6" r="5" stroke="rgba(255,255,255,0.8)" stroke-width="1.2"/>
+              <path d="M6 3.5V6L7.5 7.5" stroke="rgba(255,255,255,0.8)" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            <span>REFRESH IN 4D 5H</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Task list -->
+      <div id="qm-task-list">
+
+        <!-- Task 1: completed (full bar + check) -->
+        <div class="qm-task">
+          <div class="qm-task-reward">
+            <span class="qm-task-reward-icon">⬆️</span>
+            <span class="qm-task-reward-val">x1000</span>
+          </div>
+          <div class="qm-task-info">
+            <div class="qm-task-desc">Use canine and win 1···</div>
+            <div class="qm-task-progress-wrap">
+              <div class="qm-task-progress-bar full" style="width:100%"></div>
+            </div>
+          </div>
+          <div class="qm-task-right">
+            <div class="qm-task-check">
+              <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 6L5 9L10 3" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Task 2: completed -->
+        <div class="qm-task">
+          <div class="qm-task-reward">
+            <span class="qm-task-reward-icon">⬆️</span>
+            <span class="qm-task-reward-val">x2000</span>
+          </div>
+          <div class="qm-task-info">
+            <div class="qm-task-desc">Use egg-laying anim···</div>
+            <div class="qm-task-progress-wrap">
+              <div class="qm-task-progress-bar full" style="width:100%"></div>
+            </div>
+          </div>
+          <div class="qm-task-right">
+            <div class="qm-task-check">
+              <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 6L5 9L10 3" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Task 3: partial (6/10) -->
+        <div class="qm-task">
+          <div class="qm-task-reward">
+            <span class="qm-task-reward-icon">⬆️</span>
+            <span class="qm-task-reward-val">x3000</span>
+          </div>
+          <div class="qm-task-info">
+            <div class="qm-task-desc">Use meat-eating ani···</div>
+            <div class="qm-task-progress-wrap">
+              <div class="qm-task-progress-bar" style="width:60%"></div>
+            </div>
+          </div>
+          <div class="qm-task-right">
+            <span class="qm-task-count">6/10</span>
+          </div>
+        </div>
+
+        <!-- Task 4: partial (1/3) -->
+        <div class="qm-task">
+          <div class="qm-task-reward">
+            <span class="qm-task-reward-icon">⬆️</span>
+            <span class="qm-task-reward-val">x3000</span>
+          </div>
+          <div class="qm-task-info">
+            <div class="qm-task-desc">Use plant-eating ani···</div>
+            <div class="qm-task-progress-wrap">
+              <div class="qm-task-progress-bar" style="width:33%"></div>
+            </div>
+          </div>
+          <div class="qm-task-right">
+            <span class="qm-task-count">1/3</span>
+          </div>
+        </div>
+
+      </div><!-- /#qm-task-list -->
+    </div><!-- /#qm-right-panel -->
+
+    <!-- ═══ BOTTOM GAME MODE CAROUSEL ═══ -->
+    <div id="qm-carousel-wrap">
+
+      <!-- WHAT IF? -->
+      <div class="qm-game-card" style="background:linear-gradient(135deg,rgba(30,15,0,0.85),rgba(80,40,0,0.7));">
+        <div class="qm-card-icon" style="background:linear-gradient(145deg,#FF9500,#E05000);">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" fill="#FFD700" stroke="#E8A000" stroke-width="1"/>
+            <text x="12" y="17" text-anchor="middle" font-size="10" font-weight="900" fill="#7B3800" font-family="sans-serif">?</text>
+          </svg>
+        </div>
+        <span class="qm-game-card-label">WHAT IF?</span>
+        <!-- dice icon hint -->
+        <div style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:22px;opacity:0.7;">🎲</div>
+      </div>
+
+      <!-- LAST STAND CLASSIC (with check) -->
+      <div class="qm-game-card" style="background:linear-gradient(135deg,rgba(30,15,0,0.85),rgba(60,35,0,0.75));">
+        <div class="qm-check-badge">
+          <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 6L5 9L10 3" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="qm-card-icon" style="background:linear-gradient(145deg,#8B6040,#5B3820);">
+          <span style="font-size:18px;">🐾</span>
+        </div>
+        <span class="qm-game-card-label">LAST STAND<br>CLASSIC</span>
+      </div>
+
+      <!-- TEAM SCORE (with check) -->
+      <div class="qm-game-card" style="background:linear-gradient(135deg,rgba(30,15,0,0.85),rgba(55,35,0,0.75));">
+        <div class="qm-check-badge">
+          <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 6L5 9L10 3" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="qm-card-icon" style="background:linear-gradient(145deg,#E07830,#A04010);">
+          <span style="font-size:18px;">🏅</span>
+        </div>
+        <span class="qm-game-card-label">TEAM SCORE</span>
+      </div>
+
+      <!-- SMASH -->
+      <div class="qm-game-card" style="background:linear-gradient(135deg,rgba(25,12,0,0.9),rgba(50,30,0,0.8));">
+        <div class="qm-card-icon" style="background:linear-gradient(145deg,#C06020,#803000);">
+          <span style="font-size:18px;">💥</span>
+        </div>
+        <span class="qm-game-card-label">SMASH</span>
+      </div>
+
+      <!-- NEMO KART (NEW badge) -->
+      <div class="qm-game-card" style="background:linear-gradient(135deg,rgba(20,60,20,0.9),rgba(30,80,30,0.8));">
+        <div class="qm-new-badge">NEW</div>
+        <div class="qm-card-icon" style="background:linear-gradient(145deg,#E05030,#A02010);">
+          <span style="font-size:18px;">🏎️</span>
+        </div>
+        <span class="qm-game-card-label">NEMO KART</span>
+      </div>
+
+    </div><!-- /#qm-carousel-wrap -->
+
+    <!-- ═══ BOTTOM BAR (same layout as Main Menu) ═══ -->
+    <div id="qm-bottom-bar">
+
+      <!-- LEFT: avatars + currency -->
+      <div id="mm-bar-left" style="display:flex;align-items:center;gap:7px;flex:1;min-width:0;">
+        <div class="mm-av mm-av-lg">
+          <img src="./assets/user.png" alt="avatar" onerror="this.parentElement.innerHTML='<svg viewBox=\'0 0 38 38\' xmlns=\'http://www.w3.org/2000/svg\'><circle cx=\'19\' cy=\'19\' r=\'19\' fill=\'%23FF8C00\'/><circle cx=\'19\' cy=\'15\' r=\'7\' fill=\'%23fff\' opacity=\'0.8\'/><ellipse cx=\'19\' cy=\'34\' rx=\'11\' ry=\'8\' fill=\'%23fff\' opacity=\'0.7\'/></svg>'"/>
+        </div>
+        <div class="mm-av mm-av-sm">
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
+            <circle cx="16" cy="16" r="16" fill="#FFA000"/>
+            <circle cx="16" cy="12" r="6" fill="#fff" opacity="0.75"/>
+            <ellipse cx="16" cy="28" rx="9" ry="7" fill="#fff" opacity="0.65"/>
+          </svg>
+        </div>
+        <div class="mm-chip">
+          <div class="mm-chip-ico" style="background:linear-gradient(145deg,#FFF3DC,#FFE080);">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="4.5" cy="4.5" r="2.8" fill="#C8960A" stroke="#A07008" stroke-width="0.6"/>
+              <circle cx="15.5" cy="4.5" r="2.8" fill="#C8960A" stroke="#A07008" stroke-width="0.6"/>
+              <circle cx="4.5" cy="15.5" r="2.8" fill="#C8960A" stroke="#A07008" stroke-width="0.6"/>
+              <circle cx="15.5" cy="15.5" r="2.8" fill="#C8960A" stroke="#A07008" stroke-width="0.6"/>
+              <rect x="3.5" y="9" width="13" height="2" rx="1" fill="#C8960A" stroke="#A07008" stroke-width="0.5" transform="rotate(45 10 10)"/>
+              <rect x="3.5" y="9" width="13" height="2" rx="1" fill="#C8960A" stroke="#A07008" stroke-width="0.5" transform="rotate(-45 10 10)"/>
+            </svg>
+          </div>
+          <span class="mm-chip-val">2M</span>
+        </div>
+        <div class="mm-chip">
+          <div class="mm-chip-ico" style="background:linear-gradient(145deg,#D1FAE5,#6EE7B7);">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 2L18 8.5L10 18L2 8.5L10 2Z" fill="#10B981" stroke="#059669" stroke-width="0.8"/>
+              <path d="M2 8.5H18" stroke="#059669" stroke-width="0.7" opacity="0.6"/>
+              <path d="M10 2L7 8.5L10 18" stroke="#059669" stroke-width="0.5" opacity="0.4"/>
+            </svg>
+          </div>
+          <span class="mm-chip-val">2520</span>
+        </div>
+        <!-- CHAT button (center of bar) -->
+        <div style="flex:1;display:flex;justify-content:center;">
+          <div style="display:flex;align-items:center;gap:6px;cursor:pointer;opacity:0.65;transition:opacity 0.15s;" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.65'">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#4a2400" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+            <span style="font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:#4a2400;letter-spacing:0.05em;">CHAT</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: player info + mic + friends -->
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <div style="position:relative;flex-shrink:0;">
+          <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(145deg,#FFDC7A,#FFB830);border:2.5px solid rgba(255,255,255,0.75);overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.14);">
+            <img src="./assets/user.png" alt="p" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"/>
+          </div>
+          <div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);background:#EF5A00;color:#fff;font-size:8px;font-weight:800;padding:1px 5px;border-radius:6px;border:1.5px solid #fff;white-space:nowrap;font-family:'Nunito',sans-serif;">150</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <span id="qm-bar-pname" style="font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:#3c1800;letter-spacing:0.03em;line-height:1;">AWOKAWOK</span>
+          <div style="width:86px;height:6px;background:rgba(0,0,0,0.14);border-radius:10px;overflow:hidden;">
+            <div style="width:23%;height:100%;background:linear-gradient(90deg,#4ade80,#22c55e);border-radius:10px;"></div>
+          </div>
+        </div>
+        <div class="mm-ico-btn" title="Microphone">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="9" y="2" width="6" height="11" rx="3" fill="#4a2400"/>
+            <path d="M5 11a7 7 0 0014 0" stroke="#4a2400" stroke-width="2" stroke-linecap="round"/>
+            <line x1="12" y1="18" x2="12" y2="22" stroke="#4a2400" stroke-width="2" stroke-linecap="round"/>
+            <line x1="9" y1="22" x2="15" y2="22" stroke="#4a2400" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.5);border:1.5px solid rgba(210,155,0,0.38);border-radius:20px;padding:5px 11px 5px 7px;cursor:pointer;transition:transform 0.15s,background 0.15s;" onmouseenter="this.style.background='rgba(255,255,255,0.75)'" onmouseleave="this.style.background='rgba(255,255,255,0.5)'">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17 20H22V18C22 16.3 20.7 15 19 15C18.1 15 17.3 15.4 16.7 16" stroke="#4a2400" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M1 20H16V18C16 15.8 14.2 14 12 14H6C3.8 14 2 15.8 2 18V20" stroke="#4a2400" stroke-width="1.8"/>
+            <circle cx="9" cy="8" r="3" stroke="#4a2400" stroke-width="1.8"/>
+            <circle cx="19" cy="10" r="2.5" stroke="#4a2400" stroke-width="1.6"/>
+          </svg>
+          <span style="font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:#3c1800;">4/639</span>
+        </div>
+      </div>
+
+    </div><!-- /#qm-bottom-bar -->
+
+  </div><!-- /#quick-match-screen -->
+
+  <!-- ══════════════════════════════════════════════════════
+       CHARACTER SELECT SCREEN
+       State 1 – READY    (timer 38, yellow button)
+       State 2 – STARTING (timer counts down 38→0, green striped button)
+  ══════════════════════════════════════════════════════ -->
+  <div id="character-select-screen" class="screen hidden-screen">
+
+    <!-- Starting flash overlay -->
+    <div id="cs-starting-overlay"></div>
+
+    <!-- ═══ LOCKER ROOM BACKGROUND DECOR ═══ -->
+    <div id="cs-bg">
+
+      <!-- Punching bag — top-left wall -->
+      <div id="cs-punchbag">
+        <svg viewBox="0 0 72 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">
+          <!-- Chain -->
+          <line x1="36" y1="0" x2="36" y2="24" stroke="#888" stroke-width="3"/>
+          <ellipse cx="36" cy="24" rx="6" ry="4" fill="#777"/>
+          <!-- Bag body -->
+          <rect x="10" y="24" width="52" height="130" rx="26" fill="#CC3030"/>
+          <rect x="10" y="24" width="52" height="130" rx="26" fill="url(#pbGrad)"/>
+          <!-- Bag straps -->
+          <rect x="10" y="64" width="52" height="8" rx="2" fill="rgba(0,0,0,0.18)"/>
+          <rect x="10" y="104" width="52" height="8" rx="2" fill="rgba(0,0,0,0.18)"/>
+          <rect x="10" y="144" width="52" height="8" rx="2" fill="rgba(0,0,0,0.18)"/>
+          <!-- Highlight -->
+          <rect x="18" y="30" width="14" height="50" rx="7" fill="rgba(255,255,255,0.15)"/>
+          <defs>
+            <linearGradient id="pbGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#AA2020"/>
+              <stop offset="40%" stop-color="#EE4040"/>
+              <stop offset="100%" stop-color="#882020"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <!-- Locker bank -->
+      <div id="cs-lockers">
+        <div class="cs-locker"></div>
+        <div class="cs-locker"></div>
+        <div class="cs-locker open"></div><!-- player locker open -->
+        <div class="cs-locker"></div>
+        <div class="cs-locker"></div>
+        <div class="cs-locker open"></div>
+        <div class="cs-locker"></div>
+        <div class="cs-locker"></div>
+      </div>
+
+      <!-- Sticky note on wall -->
+      <div id="cs-stickynote"></div>
+
+      <!-- Fire extinguisher -->
+      <div id="cs-fireext">
+        <svg viewBox="0 0 42 110" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">
+          <!-- Handle bracket -->
+          <rect x="10" y="2" width="22" height="6" rx="3" fill="#888"/>
+          <!-- Valve -->
+          <rect x="16" y="8" width="10" height="8" rx="3" fill="#777"/>
+          <!-- Hose nozzle -->
+          <path d="M8 16 Q0 18 2 26" stroke="#555" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <!-- Body -->
+          <rect x="8" y="12" width="26" height="82" rx="13" fill="#CC3030"/>
+          <rect x="8" y="12" width="26" height="82" rx="13" fill="url(#feGrad)"/>
+          <!-- Label band -->
+          <rect x="8" y="42" width="26" height="22" rx="2" fill="rgba(255,255,255,0.2)"/>
+          <!-- Bottom dome -->
+          <ellipse cx="21" cy="94" rx="13" ry="6" fill="#AA2020"/>
+          <defs>
+            <linearGradient id="feGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#AA2020"/>
+              <stop offset="35%" stop-color="#EE4040"/>
+              <stop offset="100%" stop-color="#882020"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+    </div><!-- /#cs-bg -->
+
+    <!-- ═══ TOP TIMER PILL ═══ -->
+    <div id="cs-timer-pill">
+      <span id="cs-timer-icon">⏱</span>
+      <span id="cs-timer-val">38</span>
+    </div>
+
+    <!-- ═══ CHARACTER STAGE ═══ -->
+    <div id="cs-stage">
+
+      <!-- 8 character slots. Slot 3 (index 2) = "YOU" (rabbit).
+           Others are NPC opponents with random checkmarks.
+           Characters drawn as stylized SVG animals. -->
+
+      <!-- SLOT 0: Alligator (green guy with sunglasses, left edge) -->
+      <div class="cs-char-slot" style="max-width:100px;" id="cs-slot-0">
+        <div class="cs-checkmark cs-checkmark-npc" style="display:none;">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M2 7L6 11L12 3" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="cs-char-figure idle-b" style="height:clamp(110px,15vw,190px);">
+          <!-- Small alligator in sunglasses -->
+          <svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <ellipse cx="50" cy="152" rx="28" ry="6" fill="rgba(0,0,0,0.15)"/>
+            <rect x="22" y="88" width="56" height="58" rx="22" fill="#5A8A40"/>
+            <ellipse cx="50" cy="122" rx="30" ry="22" fill="#7AAA58"/>
+            <rect x="28" y="100" width="10" height="42" rx="5" fill="#5A8A40"/>
+            <rect x="62" y="100" width="10" height="42" rx="5" fill="#5A8A40"/>
+            <ellipse cx="50" cy="75" rx="30" ry="26" fill="#5A8A40"/>
+            <!-- Snout -->
+            <ellipse cx="50" cy="86" rx="14" ry="8" fill="#4A7A30"/>
+            <!-- Teeth hint -->
+            <rect x="44" y="90" width="4" height="6" rx="2" fill="#fff" opacity="0.8"/>
+            <rect x="52" y="90" width="4" height="6" rx="2" fill="#fff" opacity="0.8"/>
+            <!-- Sunglasses -->
+            <rect x="28" y="68" width="20" height="13" rx="7" fill="#1a1a1a"/>
+            <rect x="52" y="68" width="20" height="13" rx="7" fill="#1a1a1a"/>
+            <line x1="48" y1="74" x2="52" y2="74" stroke="#1a1a1a" stroke-width="2"/>
+            <!-- Eye shine -->
+            <circle cx="34" cy="72" r="3" fill="#333" opacity="0.5"/>
+            <circle cx="58" cy="72" r="3" fill="#333" opacity="0.5"/>
+            <circle cx="33" cy="71" r="1.2" fill="#fff" opacity="0.6"/>
+            <circle cx="57" cy="71" r="1.2" fill="#fff" opacity="0.6"/>
+            <!-- Ears -->
+            <ellipse cx="26" cy="55" rx="8" ry="12" fill="#4A7A30"/>
+            <ellipse cx="74" cy="55" rx="8" ry="12" fill="#4A7A30"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- SLOT 1: Pig in cap + scarf -->
+      <div class="cs-char-slot" style="max-width:120px;" id="cs-slot-1">
+        <div class="cs-checkmark cs-checkmark-npc" style="display:none;">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M2 7L6 11L12 3" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="cs-char-figure idle-a" style="height:clamp(130px,18vw,220px);">
+          <svg viewBox="0 0 100 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <ellipse cx="50" cy="172" rx="30" ry="7" fill="rgba(0,0,0,0.15)"/>
+            <!-- Body -->
+            <ellipse cx="50" cy="128" rx="34" ry="38" fill="#F4A0A0"/>
+            <ellipse cx="50" cy="138" rx="22" ry="26" fill="#FFD0D0" opacity="0.6"/>
+            <!-- Legs -->
+            <rect x="28" y="148" width="14" height="26" rx="7" fill="#F4A0A0"/>
+            <rect x="58" y="148" width="14" height="26" rx="7" fill="#F4A0A0"/>
+            <!-- Scarf/bandana orange -->
+            <rect x="26" y="100" width="48" height="14" rx="6" fill="#E06820"/>
+            <!-- Neck -->
+            <rect x="36" y="88" width="28" height="18" rx="10" fill="#F4A0A0"/>
+            <!-- Head -->
+            <ellipse cx="50" cy="72" rx="30" ry="28" fill="#F4A0A0"/>
+            <!-- Cap -->
+            <ellipse cx="50" cy="48" rx="32" ry="10" fill="#4A6890"/>
+            <rect x="18" y="44" width="64" height="18" rx="6" fill="#5A78A0"/>
+            <rect x="18" y="44" width="64" height="7" rx="3" fill="#6A88B0"/>
+            <!-- Cap visor -->
+            <ellipse cx="50" cy="62" rx="34" ry="5" fill="#3A5880"/>
+            <!-- Eyes -->
+            <circle cx="38" cy="70" r="5" fill="#1a0900"/>
+            <circle cx="39.5" cy="68.5" r="1.8" fill="#fff"/>
+            <circle cx="62" cy="70" r="5" fill="#1a0900"/>
+            <circle cx="63.5" cy="68.5" r="1.8" fill="#fff"/>
+            <!-- Snout -->
+            <ellipse cx="50" cy="79" rx="10" ry="8" fill="#F0B0B0"/>
+            <circle cx="46" cy="79" r="2.5" fill="#E090A0" opacity="0.7"/>
+            <circle cx="54" cy="79" r="2.5" fill="#E090A0" opacity="0.7"/>
+            <!-- Ears -->
+            <ellipse cx="24" cy="54" rx="9" ry="14" fill="#F4A0A0"/>
+            <ellipse cx="24" cy="56" rx="5" ry="9" fill="#FFB0C0" opacity="0.6"/>
+            <ellipse cx="76" cy="54" rx="9" ry="14" fill="#F4A0A0"/>
+            <ellipse cx="76" cy="56" rx="5" ry="9" fill="#FFB0C0" opacity="0.6"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- SLOT 2: Corgi (orange, with collar) — "Inhumane" label -->
+      <div class="cs-char-slot" style="max-width:140px;" id="cs-slot-2">
+        <div class="cs-player-label">Inhumane</div>
+        <div class="cs-checkmark cs-checkmark-npc" style="display:none;">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M2 7L6 11L12 3" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="cs-char-figure idle-c" style="height:clamp(150px,20vw,250px);">
+          <svg viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <ellipse cx="50" cy="194" rx="32" ry="7" fill="rgba(0,0,0,0.15)"/>
+            <ellipse cx="50" cy="148" rx="36" ry="40" fill="#E8651A"/>
+            <ellipse cx="50" cy="162" rx="24" ry="28" fill="#FFF8F0"/>
+            <rect x="28" y="162" width="14" height="28" rx="7" fill="#E8651A"/>
+            <rect x="58" y="162" width="14" height="28" rx="7" fill="#E8651A"/>
+            <ellipse cx="28" cy="148" rx="10" ry="14" fill="#E8651A"/>
+            <ellipse cx="72" cy="148" rx="10" ry="14" fill="#E8651A"/>
+            <rect x="34" y="104" width="32" height="20" rx="10" fill="#E8651A"/>
+            <!-- Collar red -->
+            <rect x="28" y="112" width="44" height="12" rx="6" fill="#CC3030"/>
+            <circle cx="50" cy="118" r="5" fill="#FF6060"/>
+            <!-- Head -->
+            <ellipse cx="50" cy="84" rx="34" ry="30" fill="#E8651A"/>
+            <ellipse cx="50" cy="96" rx="22" ry="18" fill="#FFF8F0"/>
+            <!-- Ears -->
+            <ellipse cx="22" cy="66" rx="12" ry="18" fill="#E8651A" transform="rotate(-12,22,66)"/>
+            <ellipse cx="78" cy="66" rx="12" ry="18" fill="#E8651A" transform="rotate(12,78,66)"/>
+            <!-- Eyes -->
+            <circle cx="36" cy="80" r="7" fill="#1f2937"/>
+            <circle cx="38" cy="78" r="2.5" fill="#fff"/>
+            <circle cx="64" cy="80" r="7" fill="#1f2937"/>
+            <circle cx="66" cy="78" r="2.5" fill="#fff"/>
+            <!-- Nose -->
+            <ellipse cx="50" cy="93" rx="7" ry="5" fill="#1f2937"/>
+            <ellipse cx="48" cy="91" rx="2" ry="1.3" fill="#fff" opacity="0.55"/>
+            <path d="M43 99 Q50 105 57 99" stroke="#1f2937" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- SLOT 3: Rabbit (WHITE) — "YOU" -->
+      <div class="cs-char-slot" style="max-width:170px; z-index:3;" id="cs-slot-3">
+        <div class="cs-you-label" id="cs-you-badge">YOU</div>
+        <div class="cs-checkmark" id="cs-you-check" style="top:24px;">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M2 7L6 11L12 3" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="cs-char-figure idle-a" style="height:clamp(170px,24vw,300px);">
+          <svg viewBox="0 0 100 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <ellipse cx="50" cy="214" rx="34" ry="7" fill="rgba(0,0,0,0.13)"/>
+            <!-- Body white fluffy -->
+            <ellipse cx="50" cy="160" rx="38" ry="44" fill="#F0EEE8"/>
+            <ellipse cx="50" cy="175" rx="26" ry="32" fill="#fff" opacity="0.7"/>
+            <!-- Fluffy tail area -->
+            <ellipse cx="50" cy="185" rx="18" ry="12" fill="#E8E6E0"/>
+            <!-- Arms / paws -->
+            <ellipse cx="20" cy="155" rx="12" ry="16" fill="#F0EEE8"/>
+            <ellipse cx="80" cy="155" rx="12" ry="16" fill="#F0EEE8"/>
+            <ellipse cx="20" cy="164" rx="8" ry="9" fill="#fff" opacity="0.8"/>
+            <ellipse cx="80" cy="164" rx="8" ry="9" fill="#fff" opacity="0.8"/>
+            <!-- Legs -->
+            <rect x="28" y="188" width="16" height="24" rx="8" fill="#F0EEE8"/>
+            <rect x="56" y="188" width="16" height="24" rx="8" fill="#F0EEE8"/>
+            <!-- Neck -->
+            <rect x="36" y="110" width="28" height="20" rx="12" fill="#F0EEE8"/>
+            <!-- Head -->
+            <ellipse cx="50" cy="92" rx="36" ry="34" fill="#F0EEE8"/>
+            <!-- Face white center -->
+            <ellipse cx="50" cy="102" rx="22" ry="20" fill="#fff" opacity="0.75"/>
+            <!-- Long ears -->
+            <ellipse cx="30" cy="52" rx="12" ry="28" fill="#F0EEE8"/>
+            <ellipse cx="30" cy="54" rx="7" ry="20" fill="#FFD0D8" opacity="0.5"/>
+            <ellipse cx="70" cy="52" rx="12" ry="28" fill="#F0EEE8"/>
+            <ellipse cx="70" cy="54" rx="7" ry="20" fill="#FFD0D8" opacity="0.5"/>
+            <!-- Eyes (dark warm brown) -->
+            <circle cx="38" cy="88" r="7" fill="#4a1a00"/>
+            <circle cx="40" cy="86" r="2.5" fill="#fff"/>
+            <circle cx="62" cy="88" r="7" fill="#4a1a00"/>
+            <circle cx="64" cy="86" r="2.5" fill="#fff"/>
+            <!-- Nose pink -->
+            <ellipse cx="50" cy="102" rx="6" ry="4.5" fill="#FFB0C0"/>
+            <!-- Mouth -->
+            <path d="M46 107 Q50 113 54 107" stroke="#E090A0" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+            <!-- Whisker lines -->
+            <line x1="24" y1="103" x2="38" y2="106" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
+            <line x1="24" y1="108" x2="38" y2="108" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
+            <line x1="62" y1="106" x2="76" y2="103" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>
+            <line x1="62" y1="108" x2="76" y2="108" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- SLOT 4: Alligator with pineapple hat + gold chain -->
+      <div class="cs-char-slot" style="max-width:145px;" id="cs-slot-4">
+        <div class="cs-checkmark cs-checkmark-npc">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M2 7L6 11L12 3" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="cs-char-figure idle-b" style="height:clamp(155px,21vw,265px);">
+          <svg viewBox="0 0 100 210" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <ellipse cx="50" cy="204" rx="32" ry="7" fill="rgba(0,0,0,0.15)"/>
+            <!-- Body green -->
+            <ellipse cx="50" cy="155" rx="36" ry="42" fill="#5A9A40"/>
+            <ellipse cx="50" cy="168" rx="22" ry="28" fill="#7ABB58" opacity="0.65"/>
+            <!-- Gold chain -->
+            <ellipse cx="50" cy="114" rx="20" ry="6" fill="none" stroke="#FFD700" stroke-width="3"/>
+            <circle cx="50" cy="120" r="7" fill="#FFD700" stroke="#E8B000" stroke-width="1.5"/>
+            <!-- Legs -->
+            <rect x="28" y="178" width="14" height="26" rx="7" fill="#5A9A40"/>
+            <rect x="58" y="178" width="14" height="26" rx="7" fill="#5A9A40"/>
+            <!-- Arms -->
+            <ellipse cx="20" cy="150" rx="10" ry="14" fill="#5A9A40"/>
+            <ellipse cx="80" cy="150" rx="10" ry="14" fill="#5A9A40"/>
+            <!-- Neck -->
+            <rect x="36" y="104" width="28" height="18" rx="10" fill="#5A9A40"/>
+            <!-- Head -->
+            <ellipse cx="50" cy="88" rx="32" ry="28" fill="#5A9A40"/>
+            <!-- Sunglasses cool -->
+            <rect x="26" y="83" width="20" height="13" rx="7" fill="#111"/>
+            <rect x="54" y="83" width="20" height="13" rx="7" fill="#111"/>
+            <line x1="46" y1="89" x2="54" y2="89" stroke="#111" stroke-width="2.5"/>
+            <circle cx="32" cy="87" r="3" fill="#222" opacity="0.6"/>
+            <circle cx="60" cy="87" r="3" fill="#222" opacity="0.6"/>
+            <circle cx="31" cy="86" r="1.2" fill="#fff" opacity="0.5"/>
+            <circle cx="59" cy="86" r="1.2" fill="#fff" opacity="0.5"/>
+            <!-- Snout -->
+            <ellipse cx="50" cy="100" rx="12" ry="8" fill="#4A8A30"/>
+            <rect x="44" y="104" width="4" height="5" rx="2" fill="#fff" opacity="0.75"/>
+            <rect x="52" y="104" width="4" height="5" rx="2" fill="#fff" opacity="0.75"/>
+            <!-- Pineapple hat -->
+            <!-- Hat base green -->
+            <ellipse cx="50" cy="60" rx="28" ry="10" fill="#5A9A40"/>
+            <!-- Pineapple body yellow -->
+            <rect x="30" y="22" width="40" height="44" rx="18" fill="#FFD700"/>
+            <rect x="30" y="22" width="40" height="44" rx="18" fill="url(#pineGrad)"/>
+            <!-- Criss-cross pattern -->
+            <line x1="30" y1="30" x2="70" y2="58" stroke="rgba(180,120,0,0.3)" stroke-width="1.5"/>
+            <line x1="30" y1="40" x2="70" y2="68" stroke="rgba(180,120,0,0.3)" stroke-width="1.5"/>
+            <line x1="70" y1="30" x2="30" y2="58" stroke="rgba(180,120,0,0.3)" stroke-width="1.5"/>
+            <line x1="70" y1="40" x2="30" y2="68" stroke="rgba(180,120,0,0.3)" stroke-width="1.5"/>
+            <!-- Pineapple leaves -->
+            <ellipse cx="36" cy="14" rx="7" ry="16" fill="#3A8A20" transform="rotate(-20,36,14)"/>
+            <ellipse cx="50" cy="8" rx="7" ry="18" fill="#4AA030"/>
+            <ellipse cx="64" cy="14" rx="7" ry="16" fill="#3A8A20" transform="rotate(20,64,14)"/>
+            <defs>
+              <linearGradient id="pineGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#FFE050"/>
+                <stop offset="100%" stop-color="#E8A800"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
+
+      <!-- SLOT 5: Bear / dark round animal -->
+      <div class="cs-char-slot" style="max-width:130px;" id="cs-slot-5">
+        <div class="cs-checkmark cs-checkmark-npc" style="display:none;">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M2 7L6 11L12 3" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="cs-char-figure idle-c" style="height:clamp(140px,19vw,240px);">
+          <svg viewBox="0 0 100 190" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <ellipse cx="50" cy="183" rx="30" ry="7" fill="rgba(0,0,0,0.15)"/>
+            <!-- Body brown-orange -->
+            <ellipse cx="50" cy="138" rx="34" ry="38" fill="#C05A20"/>
+            <ellipse cx="50" cy="150" rx="22" ry="26" fill="#E07840" opacity="0.6"/>
+            <!-- Legs -->
+            <rect x="28" y="158" width="14" height="26" rx="7" fill="#C05A20"/>
+            <rect x="58" y="158" width="14" height="26" rx="7" fill="#C05A20"/>
+            <!-- Arms stubby -->
+            <ellipse cx="22" cy="132" rx="10" ry="13" fill="#C05A20"/>
+            <ellipse cx="78" cy="132" rx="10" ry="13" fill="#C05A20"/>
+            <!-- Neck -->
+            <rect x="36" y="94" width="28" height="18" rx="10" fill="#C05A20"/>
+            <!-- Head dark round -->
+            <ellipse cx="50" cy="76" rx="32" ry="30" fill="#5A3020"/>
+            <!-- Face lighter -->
+            <ellipse cx="50" cy="88" rx="18" ry="16" fill="#9A6040" opacity="0.7"/>
+            <!-- Round ears -->
+            <circle cx="24" cy="52" r="12" fill="#5A3020"/>
+            <circle cx="24" cy="52" r="7" fill="#6A4030" opacity="0.6"/>
+            <circle cx="76" cy="52" r="12" fill="#5A3020"/>
+            <circle cx="76" cy="52" r="7" fill="#6A4030" opacity="0.6"/>
+            <!-- Eyes -->
+            <circle cx="37" cy="72" r="6" fill="#1f2937"/>
+            <circle cx="39" cy="70" r="2" fill="#fff"/>
+            <circle cx="63" cy="72" r="6" fill="#1f2937"/>
+            <circle cx="65" cy="70" r="2" fill="#fff"/>
+            <!-- Nose -->
+            <ellipse cx="50" cy="83" rx="7" ry="5" fill="#1f2937"/>
+            <ellipse cx="48" cy="81" rx="2" ry="1.2" fill="#fff" opacity="0.5"/>
+            <!-- Mouth -->
+            <path d="M44 89 Q50 95 56 89" stroke="#1f2937" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- SLOT 6: Seal / grey animal in jersey -->
+      <div class="cs-char-slot" style="max-width:125px;" id="cs-slot-6">
+        <div class="cs-checkmark cs-checkmark-npc">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M2 7L6 11L12 3" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="cs-char-figure idle-a" style="height:clamp(138px,19vw,242px);">
+          <svg viewBox="0 0 100 190" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <ellipse cx="50" cy="183" rx="30" ry="7" fill="rgba(0,0,0,0.15)"/>
+            <!-- Body grey -->
+            <ellipse cx="50" cy="138" rx="32" ry="38" fill="#8A9EB0"/>
+            <!-- Jersey blue -->
+            <ellipse cx="50" cy="140" rx="28" ry="34" fill="#2060C0"/>
+            <!-- Number 32 -->
+            <text x="50" y="152" text-anchor="middle" font-size="18" font-weight="900" fill="#fff" font-family="sans-serif" opacity="0.9">32</text>
+            <!-- Collar white -->
+            <ellipse cx="50" cy="108" rx="16" ry="5" fill="#fff" opacity="0.8"/>
+            <!-- Legs flippers -->
+            <ellipse cx="32" cy="170" rx="14" ry="8" fill="#8A9EB0" transform="rotate(10,32,170)"/>
+            <ellipse cx="68" cy="170" rx="14" ry="8" fill="#8A9EB0" transform="rotate(-10,68,170)"/>
+            <!-- Arms flippers -->
+            <ellipse cx="20" cy="138" rx="9" ry="14" fill="#8A9EB0" transform="rotate(-15,20,138)"/>
+            <ellipse cx="80" cy="138" rx="9" ry="14" fill="#8A9EB0" transform="rotate(15,80,138)"/>
+            <!-- Head grey -->
+            <ellipse cx="50" cy="78" rx="28" ry="26" fill="#8A9EB0"/>
+            <!-- Snout lighter -->
+            <ellipse cx="50" cy="90" rx="12" ry="9" fill="#A0B4C4"/>
+            <!-- Sunglasses -->
+            <rect x="28" y="71" width="18" height="12" rx="6" fill="#111"/>
+            <rect x="54" y="71" width="18" height="12" rx="6" fill="#111"/>
+            <line x1="46" y1="77" x2="54" y2="77" stroke="#111" stroke-width="2"/>
+            <circle cx="35" cy="75" r="3" fill="#222" opacity="0.5"/>
+            <circle cx="61" cy="75" r="3" fill="#222" opacity="0.5"/>
+            <circle cx="34" cy="74" r="1.2" fill="#fff" opacity="0.5"/>
+            <circle cx="60" cy="74" r="1.2" fill="#fff" opacity="0.5"/>
+            <!-- Nose -->
+            <ellipse cx="50" cy="90" rx="5" ry="3.5" fill="#607080"/>
+            <!-- Ears small -->
+            <ellipse cx="26" cy="58" rx="7" ry="10" fill="#8A9EB0"/>
+            <ellipse cx="74" cy="58" rx="7" ry="10" fill="#8A9EB0"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- SLOT 7: Raccoon / dark animal with jacket (right edge) -->
+      <div class="cs-char-slot" style="max-width:110px;" id="cs-slot-7">
+        <div class="cs-checkmark cs-checkmark-npc">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M2 7L6 11L12 3" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="cs-char-figure idle-b" style="height:clamp(120px,16vw,210px);">
+          <svg viewBox="0 0 100 172" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <ellipse cx="50" cy="165" rx="28" ry="6" fill="rgba(0,0,0,0.15)"/>
+            <!-- Body dark jacket -->
+            <ellipse cx="50" cy="122" rx="32" ry="36" fill="#2A2A3A"/>
+            <!-- Jacket stripe gold -->
+            <rect x="46" y="96" width="8" height="48" rx="3" fill="#FFD700" opacity="0.6"/>
+            <!-- Legs -->
+            <rect x="28" y="148" width="13" height="22" rx="6" fill="#2A2A3A"/>
+            <rect x="59" y="148" width="13" height="22" rx="6" fill="#2A2A3A"/>
+            <!-- Arms -->
+            <ellipse cx="20" cy="120" rx="9" ry="13" fill="#2A2A3A"/>
+            <ellipse cx="80" cy="120" rx="9" ry="13" fill="#2A2A3A"/>
+            <!-- Neck -->
+            <rect x="36" y="84" width="28" height="18" rx="10" fill="#6A6A7A"/>
+            <!-- Head grey brown -->
+            <ellipse cx="50" cy="66" rx="30" ry="28" fill="#7A7A8A"/>
+            <!-- Mask eye stripe dark -->
+            <rect x="24" y="60" width="52" height="14" rx="7" fill="#2A2A3A" opacity="0.7"/>
+            <!-- Sunglasses -->
+            <rect x="26" y="61" width="20" height="12" rx="6" fill="#111"/>
+            <rect x="54" y="61" width="20" height="12" rx="6" fill="#111"/>
+            <line x1="46" y1="67" x2="54" y2="67" stroke="#111" stroke-width="2"/>
+            <circle cx="34" cy="65" r="3" fill="#222" opacity="0.5"/>
+            <circle cx="62" cy="65" r="3" fill="#222" opacity="0.5"/>
+            <circle cx="33" cy="64" r="1.2" fill="#fff" opacity="0.5"/>
+            <circle cx="61" cy="64" r="1.2" fill="#fff" opacity="0.5"/>
+            <!-- Snout lighter -->
+            <ellipse cx="50" cy="78" rx="10" ry="7" fill="#AAAABC"/>
+            <!-- Nose -->
+            <ellipse cx="50" cy="76" rx="4" ry="3" fill="#2A2A3A"/>
+            <!-- Ears -->
+            <ellipse cx="26" cy="44" rx="9" ry="14" fill="#6A6A7A"/>
+            <ellipse cx="74" cy="44" rx="9" ry="14" fill="#6A6A7A"/>
+            <ellipse cx="26" cy="46" rx="5" ry="8" fill="#8A4A5A" opacity="0.4"/>
+            <ellipse cx="74" cy="46" rx="5" ry="8" fill="#8A4A5A" opacity="0.4"/>
+          </svg>
+        </div>
+      </div>
+
+    </div><!-- /#cs-stage -->
+
+    <!-- ═══ BOTTOM CHARACTER PICKER ROW ═══ -->
+    <div id="cs-picker-wrap">
+      <div id="cs-picker-row">
+        <!-- 13 character icons. Index 6 = rabbit (selected by default) -->
+        <!-- 0: Corgi -->
+        <div class="cs-icon-btn" data-idx="0" onclick="csSelectChar(0)" title="Corgi">
+          <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="28" fill="#E8651A"/><ellipse cx="30" cy="34" rx="14" ry="12" fill="#FFF8F0"/><circle cx="22" cy="26" r="5" fill="#1f2937"/><circle cx="23.5" cy="24.5" r="1.8" fill="#fff"/><circle cx="38" cy="26" r="5" fill="#1f2937"/><circle cx="39.5" cy="24.5" r="1.8" fill="#fff"/><ellipse cx="30" cy="33" rx="5" ry="3.5" fill="#1f2937"/><ellipse cx="14" cy="16" rx="7" ry="10" fill="#E8651A" transform="rotate(-12,14,16)"/><ellipse cx="46" cy="16" rx="7" ry="10" fill="#E8651A" transform="rotate(12,46,16)"/></svg>
+        </div>
+        <!-- 1: Gator in sunglasses -->
+        <div class="cs-icon-btn" data-idx="1" onclick="csSelectChar(1)" title="Alligator">
+          <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="28" fill="#5A9A40"/><ellipse cx="30" cy="36" rx="12" ry="10" fill="#4A7A30"/><ellipse cx="30" cy="36" rx="7" ry="4" fill="#3A6A20" opacity="0.5"/><rect x="15" y="24" width="12" height="8" rx="4" fill="#111"/><rect x="33" y="24" width="12" height="8" rx="4" fill="#111"/><line x1="27" y1="28" x2="33" y2="28" stroke="#111" stroke-width="1.5"/><ellipse cx="16" cy="14" rx="6" ry="9" fill="#4A8A30"/><ellipse cx="44" cy="14" rx="6" ry="9" fill="#4A8A30"/></svg>
+        </div>
+        <!-- 2: Hamster -->
+        <div class="cs-icon-btn" data-idx="2" onclick="csSelectChar(2)" title="Hamster">
+          <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="28" fill="#FFAA60"/><ellipse cx="30" cy="36" rx="12" ry="10" fill="#FFD0A0"/><circle cx="21" cy="27" r="5" fill="#1f2937"/><circle cx="22.5" cy="25.5" r="1.8" fill="#fff"/><circle cx="39" cy="27" r="5" fill="#1f2937"/><circle cx="40.5" cy="25.5" r="1.8" fill="#fff"/><ellipse cx="30" cy="35" rx="5" ry="3.5" fill="#FF9080"/><rect x="22" y="10" width="5" height="4" rx="2" fill="#B0504A" opacity="0.5"/><ellipse cx="14" cy="20" rx="6" ry="9" fill="#FFAA60"/><ellipse cx="46" cy="20" rx="6" ry="9" fill="#FFAA60"/></svg>
+        </div>
+        <!-- 3: Otter -->
+        <div class="cs-icon-btn" data-idx="3" onclick="csSelectChar(3)" title="Otter">
+          <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="28" fill="#A07850"/><ellipse cx="30" cy="37" rx="13" ry="11" fill="#C09870"/><circle cx="21" cy="27" r="5" fill="#1f2937"/><circle cx="22.5" cy="25.5" r="1.8" fill="#fff"/><circle cx="39" cy="27" r="5" fill="#1f2937"/><circle cx="40.5" cy="25.5" r="1.8" fill="#fff"/><ellipse cx="30" cy="35" rx="6" ry="4" fill="#8A6040"/><ellipse cx="14" cy="18" rx="7" ry="10" fill="#906030"/><ellipse cx="46" cy="18" rx="7" ry="10" fill="#906030"/></svg>
+        </div>
+        <!-- 4: Dino green -->
+        <div class="cs-icon-btn" data-idx="4" onclick="csSelectChar(4)" title="Dino">
+          <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="28" fill="#60B040"/><ellipse cx="30" cy="38" rx="12" ry="9" fill="#4A9030"/><circle cx="21" cy="26" r="5" fill="#1f2937"/><circle cx="22.5" cy="24.5" r="1.8" fill="#fff"/><circle cx="39" cy="26" r="5" fill="#1f2937"/><circle cx="40.5" cy="24.5" r="1.8" fill="#fff"/><rect x="24" y="40" width="4" height="5" rx="2" fill="#fff" opacity="0.8"/><rect x="32" y="40" width="4" height="5" rx="2" fill="#fff" opacity="0.8"/><ellipse cx="28" cy="10" rx="4" ry="7" fill="#4A8A30"/><ellipse cx="38" cy="8" rx="4" ry="7" fill="#4A8A30"/><ellipse cx="46" cy="12" rx="4" ry="7" fill="#4A8A30"/></svg>
+        </div>
+        <!-- 5: Duck -->
+        <div class="cs-icon-btn" data-idx="5" onclick="csSelectChar(5)" title="Duck">
+          <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="28" fill="#F5E8B0"/><ellipse cx="30" cy="36" rx="12" ry="9" fill="#fff" opacity="0.7"/><circle cx="22" cy="26" r="5" fill="#1f2937"/><circle cx="23.5" cy="24.5" r="1.8" fill="#fff"/><circle cx="38" cy="26" r="5" fill="#1f2937"/><circle cx="39.5" cy="24.5" r="1.8" fill="#fff"/><path d="M24 34 Q30 38 36 34" fill="#FFA000" stroke="#E08000" stroke-width="0.5"/><ellipse cx="14" cy="22" rx="5" ry="8" fill="#E8D890"/><ellipse cx="46" cy="22" rx="5" ry="8" fill="#E8D890"/></svg>
+        </div>
+        <!-- 6: RABBIT (selected default) -->
+        <div class="cs-icon-btn selected" data-idx="6" onclick="csSelectChar(6)" title="Rabbit">
+          <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="28" fill="#F0EEE8"/><ellipse cx="30" cy="37" rx="12" ry="10" fill="#fff" opacity="0.8"/><circle cx="21" cy="27" r="5.5" fill="#4a1a00"/><circle cx="23" cy="25" r="2" fill="#fff"/><circle cx="39" cy="27" r="5.5" fill="#4a1a00"/><circle cx="41" cy="25" r="2" fill="#fff"/><ellipse cx="30" cy="36" rx="5" ry="3.5" fill="#FFB0C0"/><ellipse cx="14" cy="12" rx="5" ry="13" fill="#F0EEE8"/><ellipse cx="14" cy="14" rx="3" ry="8" fill="#FFD0D8" opacity="0.6"/><ellipse cx="46" cy="12" rx="5" ry="13" fill="#F0EEE8"/><ellipse cx="46" cy="14" rx="3" ry="8" fill="#FFD0D8" opacity="0.6"/></svg>
+        </div>
+        <!-- 7: Pig pink -->
+        <div class="cs-icon-btn" data-idx="7" onclick="csSelectChar(7)" title="Pig">
+          <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="28" fill="#F4A0A0"/><ellipse cx="30" cy="38" rx="13" ry="10" fill="#FFD0D0"/><circle cx="21" cy="27" r="5" fill="#1f2937"/><circle cx="22.5" cy="25.5" r="1.8" fill="#fff"/><circle cx="39" cy="27" r="5" fill="#1f2937"/><circle cx="40.5" cy="25.5" r="1.8" fill="#fff"/><ellipse cx="30" cy="36" rx="8" ry="6" fill="#F0B0B0"/><circle cx="27" cy="35" r="2.2" fill="#E090A0" opacity="0.7"/><circle cx="33" cy="35" r="2.2" fill="#E090A0" opacity="0.7"/><ellipse cx="14" cy="14" rx="7" ry="10" fill="#F4A0A0"/><ellipse cx="14" cy="16" rx="4" ry="6" fill="#FFB0C0" opacity="0.6"/><ellipse cx="46" cy="14" rx="7" ry="10" fill="#F4A0A0"/><ellipse cx="46" cy="16" rx="4" ry="6" fill="#FFB0C0" opacity="0.6"/></svg>
+        </div>
+        <!-- 8: Goose -->
+        <div class="cs-icon-btn" data-idx="8" onclick="csSelectChar(8)" title="Goose">
+          <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="28" fill="#E8E8E0"/><ellipse cx="30" cy="36" rx="12" ry="9" fill="#fff"/><circle cx="22" cy="25" r="5" fill="#1f2937"/><circle cx="23.5" cy="23.5" r="1.8" fill="#fff"/><circle cx="38" cy="25" r="5" fill="#1f2937"/><circle cx="39.5" cy="23.5" r="1.8" fill="#fff"/><path d="M22 33 L30 37 L38 33" fill="#FFA000"/><ellipse cx="30" cy="8" rx="5" ry="10" fill="#E8E8E0"/></svg>
+        </div>
+        <!-- 9: Black fluffy -->
+        <div class="cs-icon-btn" data-idx="9" onclick="csSelectChar(9)" title="Black Cat">
+          <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="28" fill="#2A2A2A"/><ellipse cx="30" cy="37" rx="12" ry="9" fill="#3A3A3A"/><circle cx="21" cy="26" r="5.5" fill="#FFD700"/><circle cx="23" cy="24" r="2" fill="#fff"/><circle cx="39" cy="26" r="5.5" fill="#FFD700"/><circle cx="41" cy="24" r="2" fill="#fff"/><ellipse cx="30" cy="36" rx="5" ry="3" fill="#1a1a1a"/><ellipse cx="14" cy="12" rx="6" ry="10" fill="#2A2A2A"/><ellipse cx="46" cy="12" rx="6" ry="10" fill="#2A2A2A"/></svg>
+        </div>
+        <!-- 10: Husky wolf -->
+        <div class="cs-icon-btn" data-idx="10" onclick="csSelectChar(10)" title="Husky">
+          <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="28" fill="#8A8A9A"/><ellipse cx="30" cy="37" rx="13" ry="11" fill="#C8C8D8"/><circle cx="21" cy="27" r="5" fill="#1f4080"/><circle cx="23" cy="25" r="2" fill="#fff"/><circle cx="39" cy="27" r="5" fill="#1f4080"/><circle cx="41" cy="25" r="2" fill="#fff"/><ellipse cx="30" cy="36" rx="6" ry="4" fill="#7A7A8A"/><ellipse cx="14" cy="14" rx="7" ry="10" fill="#7A7A8A"/><ellipse cx="14" cy="14" rx="4" ry="6" fill="#C8C8D8" opacity="0.7"/><ellipse cx="46" cy="14" rx="7" ry="10" fill="#7A7A8A"/><ellipse cx="46" cy="14" rx="4" ry="6" fill="#C8C8D8" opacity="0.7"/></svg>
+        </div>
+        <!-- 11: Guinea pig -->
+        <div class="cs-icon-btn" data-idx="11" onclick="csSelectChar(11)" title="Guinea Pig">
+          <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="28" fill="#C08840"/><ellipse cx="30" cy="37" rx="13" ry="11" fill="#E0B870"/><circle cx="21" cy="27" r="5" fill="#1f2937"/><circle cx="22.5" cy="25.5" r="1.8" fill="#fff"/><circle cx="39" cy="27" r="5" fill="#1f2937"/><circle cx="40.5" cy="25.5" r="1.8" fill="#fff"/><ellipse cx="30" cy="36" rx="6" ry="4" fill="#FF9090"/><rect x="14" y="8" width="5" height="3" rx="1.5" fill="rgba(0,0,0,0.2)"/><ellipse cx="14" cy="18" rx="6" ry="9" fill="#B07830"/><ellipse cx="46" cy="18" rx="6" ry="9" fill="#B07830"/></svg>
+        </div>
+        <!-- 12: Horse -->
+        <div class="cs-icon-btn" data-idx="12" onclick="csSelectChar(12)" title="Horse">
+          <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="28" fill="#D4A060"/><ellipse cx="30" cy="37" rx="12" ry="9" fill="#E8C080"/><circle cx="21" cy="27" r="5" fill="#1f2937"/><circle cx="22.5" cy="25.5" r="1.8" fill="#fff"/><circle cx="39" cy="27" r="5" fill="#1f2937"/><circle cx="40.5" cy="25.5" r="1.8" fill="#fff"/><ellipse cx="30" cy="36" rx="6" ry="4.5" fill="#C49050"/><ellipse cx="30" cy="10" rx="4" ry="10" fill="#A06820"/><ellipse cx="30" cy="12" rx="2.5" ry="7" fill="#C08030" opacity="0.7"/><ellipse cx="14" cy="20" rx="5" ry="8" fill="#C09050"/><ellipse cx="46" cy="20" rx="5" ry="8" fill="#C09050"/></svg>
+        </div>
+      </div>
+    </div><!-- /#cs-picker-wrap -->
+
+    <!-- ═══ BOTTOM ACTION BAR ═══ -->
+    <div id="cs-action-bar">
+      <!-- Left: SELECT CHARACTER hint -->
+      <div id="cs-select-label">
+        <span>A</span><span>O</span>
+        SELECT CHARACTER
+      </div>
+
+      <!-- Center: READY / STARTING button -->
+      <button id="cs-ready-btn" class="state-ready" onclick="csReadyClick()">
+        <span class="cs-btn-icon">🎮</span>
+        <span class="cs-btn-text" id="cs-ready-label">READY</span>
+      </button>
+
+      <!-- Right: CHANGE OUTFIT -->
+      <div id="cs-outfit-btn" onclick="csChangeOutfit()">
+        <span>S</span>
+        CHANGE OUTFIT
+      </div>
+    </div>
+
+    <!-- ═══ BOTTOM BAR ═══ -->
+    <div id="cs-bottom-bar">
+      <div style="display:flex;align-items:center;gap:7px;flex:1;min-width:0;">
+        <div class="mm-av mm-av-lg">
+          <img src="./assets/user.png" alt="avatar" onerror="this.parentElement.innerHTML='<svg viewBox=\'0 0 38 38\' xmlns=\'http://www.w3.org/2000/svg\'><circle cx=\'19\' cy=\'19\' r=\'19\' fill=\'%23FF8C00\'/><circle cx=\'19\' cy=\'15\' r=\'7\' fill=\'%23fff\' opacity=\'0.8\'/><ellipse cx=\'19\' cy=\'34\' rx=\'11\' ry=\'8\' fill=\'%23fff\' opacity=\'0.7\'/></svg>'"/>
+        </div>
+        <div class="mm-av mm-av-sm">
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" width="32" height="32"><circle cx="16" cy="16" r="16" fill="#FFA000"/><circle cx="16" cy="12" r="6" fill="#fff" opacity="0.75"/><ellipse cx="16" cy="28" rx="9" ry="7" fill="#fff" opacity="0.65"/></svg>
+        </div>
+        <div class="mm-chip">
+          <div class="mm-chip-ico" style="background:linear-gradient(145deg,#FFF3DC,#FFE080);">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none"><circle cx="4.5" cy="4.5" r="2.8" fill="#C8960A" stroke="#A07008" stroke-width="0.6"/><circle cx="15.5" cy="4.5" r="2.8" fill="#C8960A" stroke="#A07008" stroke-width="0.6"/><circle cx="4.5" cy="15.5" r="2.8" fill="#C8960A" stroke="#A07008" stroke-width="0.6"/><circle cx="15.5" cy="15.5" r="2.8" fill="#C8960A" stroke="#A07008" stroke-width="0.6"/><rect x="3.5" y="9" width="13" height="2" rx="1" fill="#C8960A" stroke="#A07008" stroke-width="0.5" transform="rotate(45 10 10)"/><rect x="3.5" y="9" width="13" height="2" rx="1" fill="#C8960A" stroke="#A07008" stroke-width="0.5" transform="rotate(-45 10 10)"/></svg>
+          </div>
+          <span class="mm-chip-val">2M</span>
+        </div>
+        <div class="mm-chip">
+          <div class="mm-chip-ico" style="background:linear-gradient(145deg,#D1FAE5,#6EE7B7);">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none"><path d="M10 2L18 8.5L10 18L2 8.5L10 2Z" fill="#10B981" stroke="#059669" stroke-width="0.8"/><path d="M2 8.5H18" stroke="#059669" stroke-width="0.7" opacity="0.6"/></svg>
+          </div>
+          <span class="mm-chip-val">2520</span>
+        </div>
+        <div style="flex:1;display:flex;justify-content:center;">
+          <div style="display:flex;align-items:center;gap:6px;cursor:pointer;opacity:0.55;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#4a2400" stroke-width="2" stroke-linejoin="round"/></svg>
+            <span style="font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:#4a2400;letter-spacing:0.05em;">CHAT</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <div style="position:relative;flex-shrink:0;">
+          <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(145deg,#FFDC7A,#FFB830);border:2.5px solid rgba(255,255,255,0.75);overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.14);">
+            <img src="./assets/user.png" alt="p" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"/>
+          </div>
+          <div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);background:#EF5A00;color:#fff;font-size:8px;font-weight:800;padding:1px 5px;border-radius:6px;border:1.5px solid #fff;white-space:nowrap;font-family:'Nunito',sans-serif;">150</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <span id="cs-bar-pname" style="font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:#3c1800;letter-spacing:0.03em;line-height:1;">AWOKAWOK</span>
+          <div style="width:86px;height:6px;background:rgba(0,0,0,0.14);border-radius:10px;overflow:hidden;"><div style="width:23%;height:100%;background:linear-gradient(90deg,#4ade80,#22c55e);border-radius:10px;"></div></div>
+        </div>
+        <div class="mm-ico-btn" title="Microphone">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="11" rx="3" fill="#4a2400"/><path d="M5 11a7 7 0 0014 0" stroke="#4a2400" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="18" x2="12" y2="22" stroke="#4a2400" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="22" x2="15" y2="22" stroke="#4a2400" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.5);border:1.5px solid rgba(210,155,0,0.38);border-radius:20px;padding:5px 11px 5px 7px;cursor:pointer;" title="Friends">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M17 20H22V18C22 16.3 20.7 15 19 15C18.1 15 17.3 15.4 16.7 16" stroke="#4a2400" stroke-width="1.8" stroke-linecap="round"/><path d="M1 20H16V18C16 15.8 14.2 14 12 14H6C3.8 14 2 15.8 2 18V20" stroke="#4a2400" stroke-width="1.8"/><circle cx="9" cy="8" r="3" stroke="#4a2400" stroke-width="1.8"/><circle cx="19" cy="10" r="2.5" stroke="#4a2400" stroke-width="1.6"/></svg>
+          <span style="font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:#3c1800;">4/639</span>
+        </div>
+      </div>
+    </div><!-- /#cs-bottom-bar -->
+
+  </div><!-- /#character-select-screen -->
+
   <!-- ══ MODAL: Create Account ══ -->
   <div id="modal-overlay">
     <div id="modal-box">
@@ -712,7 +2635,7 @@ async function installPWA() {
    SCREEN HELPERS
 ══════════════════════════════════════════════════════ */
 function showScreen(id) {
-  ['portrait-screen','black-screen','loading-screen','title-screen','main-menu']
+  ['portrait-screen','black-screen','loading-screen','title-screen','main-menu','quick-match-screen','character-select-screen']
     .forEach(s => document.getElementById(s).classList.add('hidden-screen'));
   if(id) document.getElementById(id).classList.remove('hidden-screen');
   S.currentScreen = id;
@@ -891,12 +2814,456 @@ function animateMenuBar() {
 
 /* ── Menu item click feedback ── */
 function onMenuClick(label) {
+  if(label === 'Quick Match') { openQuickMatch(); return; }
+  if(label === 'Exit Game') { if(confirm('Exit game?')) window.close(); return; }
   console.log('Menu:', label);
-  // Replace alert with proper navigation later
-  // For now a quick visual flash on the item:
-  if(label === 'Exit Game') {
-    if(confirm('Exit game?')) window.close();
+}
+
+/* ══════════════════════════════════════════════════════
+   ████  QUICK MATCH SCREEN  ████
+══════════════════════════════════════════════════════ */
+
+const QM = {
+  matchTimer: null,       // setInterval handle
+  matchSeconds: 0,        // elapsed seconds
+  state: 'start',         // 'start' | 'matching'
+};
+
+/* ── Open Quick Match from Main Menu ── */
+function openQuickMatch() {
+  const tb = document.getElementById('transition-black');
+
+  // Fade to black (200ms quick)
+  tb.style.transition = 'opacity 0.2s ease';
+  tb.classList.add('fade-in');
+
+  setTimeout(() => {
+    // Hide main menu, show QM screen (still behind black)
+    document.getElementById('main-menu').classList.add('hidden-screen');
+    document.getElementById('main-menu').classList.remove('mm-visible');
+
+    showScreen('quick-match-screen');
+    qmResetState();
+    populateQMProfile();
+
+    // Animate QM screen in
+    setTimeout(() => {
+      tb.classList.remove('fade-in');
+      tb.style.transition = 'opacity 0.35s ease';
+      tb.classList.add('fade-out');
+
+      // Bounce-in the QM screen
+      const qms = document.getElementById('quick-match-screen');
+      qms.classList.add('qm-visible');
+
+      // Stagger panel entries
+      setTimeout(() => document.getElementById('qm-left-panel').classList.add('qm-panel-in'),   80);
+      setTimeout(() => document.getElementById('qm-center-scene').classList.add('qm-scene-in'), 140);
+      setTimeout(() => document.getElementById('qm-right-panel').classList.add('qm-panel-in'),  120);
+      setTimeout(() => document.getElementById('qm-carousel-wrap').classList.add('qm-carousel-in'), 200);
+      setTimeout(() => document.getElementById('qm-bottom-bar').classList.add('qm-bar-in'),     220);
+
+      setTimeout(() => tb.classList.remove('fade-out'), 400);
+    }, 60);
+  }, 220);
+}
+
+/* ── Back from Quick Match → Main Menu ── */
+function qmGoBack() {
+  qmStopTimer();
+  const tb = document.getElementById('transition-black');
+  tb.style.transition = 'opacity 0.25s ease';
+  tb.classList.add('fade-in');
+
+  setTimeout(() => {
+    // Reset QM
+    const qms = document.getElementById('quick-match-screen');
+    qms.classList.remove('qm-visible');
+    document.getElementById('qm-left-panel').classList.remove('qm-panel-in');
+    document.getElementById('qm-center-scene').classList.remove('qm-scene-in');
+    document.getElementById('qm-right-panel').classList.remove('qm-panel-in');
+    document.getElementById('qm-carousel-wrap').classList.remove('qm-carousel-in');
+    document.getElementById('qm-bottom-bar').classList.remove('qm-bar-in');
+
+    // Restore main menu
+    showScreen('main-menu');
+    const menu = document.getElementById('main-menu');
+    menu.style.animation = '';
+    menu.classList.add('mm-visible');
+    // Re-run bar animation
+    const bar = document.getElementById('mm-bottom-bar');
+    bar.style.animation = 'none';
+    void bar.offsetWidth; // reflow
+    bar.style.animation = 'mmBarUp 0.4s cubic-bezier(0.25,1,0.5,1) forwards';
+
+    setTimeout(() => {
+      tb.classList.remove('fade-in');
+      tb.style.transition = 'opacity 0.4s ease';
+      tb.classList.add('fade-out');
+      setTimeout(() => tb.classList.remove('fade-out'), 450);
+    }, 60);
+  }, 260);
+}
+
+/* ── Reset QM to State 1 ── */
+function qmResetState() {
+  QM.state = 'start';
+  QM.matchSeconds = 0;
+  document.getElementById('qm-state-start').classList.remove('hidden-state');
+  document.getElementById('qm-state-matching').classList.remove('active');
+  document.getElementById('qm-timer').textContent = '00:00';
+  document.getElementById('qm-timer').classList.add('pulsing');
+}
+
+/* ── Populate player name/avatar from localStorage ── */
+function populateQMProfile() {
+  try {
+    const raw = localStorage.getItem('partyBrawlAccount');
+    if(!raw) return;
+    const acc = JSON.parse(raw);
+    if(acc.firstName) {
+      const name = (acc.firstName+' '+(acc.lastName||'')).trim().toUpperCase().slice(0,12);
+      document.getElementById('qm-panel-name').textContent = name;
+      document.getElementById('qm-bar-pname').textContent = name;
+    }
+    if(acc.profileBase64) {
+      const av = document.getElementById('qm-panel-avatar');
+      av.innerHTML = `<img src="${acc.profileBase64}" style="width:100%;height:100%;object-fit:cover;" alt="avatar"/>`;
+    }
+  } catch(e) {}
+}
+
+/* ── Party Up (placeholder) ── */
+function qmPartyUp() {
+  console.log('Party Up clicked');
+  // Future: open party UI
+}
+
+/* ── START MATCH → switch to Matching state ── */
+function qmStartMatch() {
+  if(QM.state === 'matching') return;
+  QM.state = 'matching';
+  QM.matchSeconds = 0;
+
+  const panel = document.getElementById('qm-left-panel');
+
+  // Panel switch animation
+  panel.classList.add('qm-panel-switching');
+
+  setTimeout(() => {
+    // At mid-animation, swap content
+    document.getElementById('qm-state-start').classList.add('hidden-state');
+    document.getElementById('qm-state-matching').classList.add('active');
+    updateQMTimer();
+    panel.classList.remove('qm-panel-switching');
+  }, 190);
+
+  // Start timer — auto-open character select after 30s
+  QM.matchTimer = setInterval(() => {
+    QM.matchSeconds++;
+    updateQMTimer();
+    if(QM.matchSeconds >= 30) {
+      qmStopTimer();
+      openCharacterSelect();
+    }
+  }, 1000);
+}
+
+/* ── Format and update timer display ── */
+function updateQMTimer() {
+  const m = Math.floor(QM.matchSeconds / 60);
+  const s = QM.matchSeconds % 60;
+  document.getElementById('qm-timer').textContent =
+    String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+/* ── CANCEL: stop timer, decide where to go ── */
+function qmCancelMatch() {
+  qmStopTimer();
+  if(QM.matchSeconds > 10) {
+    // Been matching more than 10s → go back to main menu
+    qmGoBack();
+  } else {
+    // Return to State 1 with panel switch animation
+    QM.state = 'start';
+    const panel = document.getElementById('qm-left-panel');
+    panel.classList.add('qm-panel-switching');
+    setTimeout(() => {
+      document.getElementById('qm-state-matching').classList.remove('active');
+      document.getElementById('qm-state-start').classList.remove('hidden-state');
+      QM.matchSeconds = 0;
+      document.getElementById('qm-timer').textContent = '00:00';
+      panel.classList.remove('qm-panel-switching');
+    }, 190);
   }
+}
+
+/* ── Stop interval timer ── */
+function qmStopTimer() {
+  if(QM.matchTimer) { clearInterval(QM.matchTimer); QM.matchTimer = null; }
+}
+
+/* ══════════════════════════════════════════════════════
+   ████  CHARACTER SELECT SCREEN  ████
+══════════════════════════════════════════════════════ */
+
+const CS = {
+  state: 'ready',          // 'ready' | 'starting'
+  readyTimer: null,        // setInterval — countdown from 38
+  readySeconds: 38,        // countdown display
+  startingTimer: null,     // setInterval — 38 → 0 fast
+  startingSeconds: 38,
+  selectedIdx: 6,          // rabbit default (index 6 in picker)
+};
+
+/* ── Open Character Select (from Quick Match after 30s) ── */
+function openCharacterSelect() {
+  qmStopTimer();
+  const tb = document.getElementById('transition-black');
+  tb.style.transition = 'opacity 0.25s ease';
+  tb.classList.add('fade-in');
+
+  setTimeout(() => {
+    // Tear down QM screen
+    const qms = document.getElementById('quick-match-screen');
+    qms.classList.remove('qm-visible');
+    document.getElementById('qm-left-panel').classList.remove('qm-panel-in');
+    document.getElementById('qm-center-scene').classList.remove('qm-scene-in');
+    document.getElementById('qm-right-panel').classList.remove('qm-panel-in');
+    document.getElementById('qm-carousel-wrap').classList.remove('qm-carousel-in');
+    document.getElementById('qm-bottom-bar').classList.remove('qm-bar-in');
+
+    // Set up & show Character Select
+    showScreen('character-select-screen');
+    csResetState();
+    populateCSProfile();
+
+    setTimeout(() => {
+      tb.classList.remove('fade-in');
+      tb.style.transition = 'opacity 0.4s ease';
+      tb.classList.add('fade-out');
+
+      // Bounce-in the CS screen
+      const css = document.getElementById('character-select-screen');
+      css.classList.add('cs-visible');
+
+      // Stagger sub-elements in
+      setTimeout(() => document.getElementById('cs-stage').classList.add('cs-stage-in'),       80);
+      setTimeout(() => document.getElementById('cs-picker-wrap').classList.add('cs-picker-in'), 160);
+      setTimeout(() => document.getElementById('cs-action-bar').classList.add('cs-bar-in'),     200);
+      setTimeout(() => document.getElementById('cs-bottom-bar').classList.add('cs-bottombar-in'), 240);
+
+      // Start ready countdown: 38 → 0
+      csStartReadyTimer();
+
+      // Pop-in NPC checkmarks randomly
+      csPopNPCCheckmarks();
+
+      setTimeout(() => tb.classList.remove('fade-out'), 500);
+    }, 60);
+  }, 280);
+}
+
+/* ── Reset CS to State 1 (READY) ── */
+function csResetState() {
+  CS.state = 'ready';
+  CS.readySeconds = 38;
+  CS.startingSeconds = 38;
+  csStopAllTimers();
+
+  // Timer pill
+  document.getElementById('cs-timer-val').textContent = '38';
+
+  // Button → READY (yellow)
+  const btn = document.getElementById('cs-ready-btn');
+  btn.className = 'state-ready';
+  document.getElementById('cs-ready-label').textContent = 'READY';
+  btn.style.pointerEvents = '';
+
+  // Reset icon to controller
+  btn.querySelector('.cs-btn-icon').textContent = '🎮';
+
+  // Hide all NPC checkmarks
+  document.querySelectorAll('.cs-checkmark-npc').forEach(el => {
+    el.style.display = 'none';
+    el.classList.remove('popping');
+  });
+
+  // Reset picker selection
+  CS.selectedIdx = 6;
+  document.querySelectorAll('.cs-icon-btn').forEach((el, i) => {
+    el.classList.toggle('selected', i === 6);
+    el.classList.remove('just-selected');
+  });
+
+  // YOU badge on rabbit slot
+  document.getElementById('cs-you-badge').style.display = '';
+}
+
+/* ── Populate player name from localStorage ── */
+function populateCSProfile() {
+  try {
+    const raw = localStorage.getItem('partyBrawlAccount');
+    if(!raw) return;
+    const acc = JSON.parse(raw);
+    if(acc.firstName) {
+      const name = (acc.firstName+' '+(acc.lastName||'')).trim().toUpperCase().slice(0,12);
+      document.getElementById('cs-bar-pname').textContent = name;
+    }
+  } catch(e) {}
+}
+
+/* ── Ready countdown: 38 → 0 (1s intervals) ── */
+function csStartReadyTimer() {
+  csStopAllTimers();
+  CS.readySeconds = 38;
+  document.getElementById('cs-timer-val').textContent = CS.readySeconds;
+  CS.readyTimer = setInterval(() => {
+    CS.readySeconds--;
+    document.getElementById('cs-timer-val').textContent = CS.readySeconds;
+    if(CS.readySeconds <= 0) {
+      csStopAllTimers();
+      // Time up — force READY → STARTING automatically
+      csSetStartingState();
+    }
+  }, 1000);
+}
+
+/* ── READY button clicked → switch to STARTING ── */
+function csReadyClick() {
+  if(CS.state !== 'ready') return;
+  csSetStartingState();
+}
+
+/* ── Switch to STARTING state ── */
+function csSetStartingState() {
+  if(CS.state === 'starting') return;
+  CS.state = 'starting';
+  csStopAllTimers();
+
+  // Flash overlay
+  const ov = document.getElementById('cs-starting-overlay');
+  ov.classList.add('flash');
+  setTimeout(() => ov.classList.remove('flash'), 350);
+
+  // Swap button to green STARTING
+  const btn = document.getElementById('cs-ready-btn');
+  btn.className = 'state-starting';
+  document.getElementById('cs-ready-label').textContent = 'STARTING';
+  btn.querySelector('.cs-btn-icon').textContent = '✓';
+  btn.style.pointerEvents = 'none';
+
+  // Start fast countdown: 38 → 0 (faster: 0.8s per tick)
+  CS.startingSeconds = 38;
+  document.getElementById('cs-timer-val').textContent = CS.startingSeconds;
+  CS.startingTimer = setInterval(() => {
+    CS.startingSeconds--;
+    document.getElementById('cs-timer-val').textContent =
+      String(CS.startingSeconds).padStart(2, '0');
+    if(CS.startingSeconds <= 0) {
+      csStopAllTimers();
+      // Game would start here — return to main menu for now
+      setTimeout(() => csReturnToMainMenu(), 600);
+    }
+  }, 800);
+}
+
+/* ── Select a character from the picker row ── */
+function csSelectChar(idx) {
+  if(CS.state === 'starting') return; // lock during starting
+
+  const prev = CS.selectedIdx;
+  CS.selectedIdx = idx;
+
+  // Move selected border
+  document.querySelectorAll('.cs-icon-btn').forEach((el, i) => {
+    el.classList.remove('selected', 'just-selected');
+    if(i === idx) {
+      el.classList.add('selected', 'just-selected');
+      // Remove animation class after it plays
+      setTimeout(() => el.classList.remove('just-selected'), 350);
+    }
+  });
+
+  // Move "YOU" badge to the matching stage slot
+  // Stage slots: slot indices 0-7 correspond to displayed characters
+  // Rabbit is slot 3 (idx 6 in picker). We do a simple mapping.
+  // For simplicity: only show YOU on rabbit (picker idx 6 = stage slot 3)
+  const youBadge = document.getElementById('cs-you-badge');
+  youBadge.style.display = (idx === 6) ? '' : 'none';
+
+  // Move your checkmark (above stage character that matches selection)
+  // Map picker idx → stage slot idx (simplified mapping)
+  const pickerToStage = { 6: 3 }; // rabbit maps to center slot
+  const youCheck = document.getElementById('cs-you-check');
+  if(pickerToStage[idx] !== undefined) {
+    const stageSlot = document.getElementById('cs-slot-' + pickerToStage[idx]);
+    if(stageSlot) {
+      stageSlot.appendChild(youCheck);
+      youCheck.style.display = '';
+    }
+  }
+}
+
+/* ── Pop NPC checkmarks in randomly ── */
+function csPopNPCCheckmarks() {
+  const checks = document.querySelectorAll('.cs-checkmark-npc');
+  // Randomly show some after variable delays
+  const delays = [400, 1200, 2500, 600];
+  checks.forEach((el, i) => {
+    const delay = delays[i % delays.length] + Math.random() * 800;
+    setTimeout(() => {
+      if(CS.state !== 'ready' && CS.state !== 'starting') return;
+      el.style.display = 'flex';
+      el.classList.add('popping');
+    }, delay);
+  });
+}
+
+/* ── Change Outfit ── */
+function csChangeOutfit() {
+  alert('Outfit changer coming soon! 🎨');
+}
+
+/* ── Return to Main Menu from Character Select ── */
+function csReturnToMainMenu() {
+  csStopAllTimers();
+  const tb = document.getElementById('transition-black');
+  tb.style.transition = 'opacity 0.3s ease';
+  tb.classList.add('fade-in');
+
+  setTimeout(() => {
+    // Tear down CS screen
+    const css = document.getElementById('character-select-screen');
+    css.classList.remove('cs-visible');
+    document.getElementById('cs-stage').classList.remove('cs-stage-in');
+    document.getElementById('cs-picker-wrap').classList.remove('cs-picker-in');
+    document.getElementById('cs-action-bar').classList.remove('cs-bar-in');
+    document.getElementById('cs-bottom-bar').classList.remove('cs-bottombar-in');
+
+    // Show main menu
+    showScreen('main-menu');
+    const menu = document.getElementById('main-menu');
+    menu.style.animation = '';
+    menu.classList.add('mm-visible');
+    const bar = document.getElementById('mm-bottom-bar');
+    bar.style.animation = 'none';
+    void bar.offsetWidth;
+    bar.style.animation = 'mmBarUp 0.4s cubic-bezier(0.25,1,0.5,1) forwards';
+
+    setTimeout(() => {
+      tb.classList.remove('fade-in');
+      tb.style.transition = 'opacity 0.45s ease';
+      tb.classList.add('fade-out');
+      setTimeout(() => tb.classList.remove('fade-out'), 500);
+    }, 60);
+  }, 320);
+}
+
+/* ── Stop all CS timers ── */
+function csStopAllTimers() {
+  if(CS.readyTimer)    { clearInterval(CS.readyTimer);    CS.readyTimer = null; }
+  if(CS.startingTimer) { clearInterval(CS.startingTimer); CS.startingTimer = null; }
 }
 
 /* ══════════════════════════════════════════════════════
